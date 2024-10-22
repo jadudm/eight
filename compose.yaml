@@ -1,0 +1,15 @@
+services:
+  pgq:
+    image: postgres:15-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - pgq-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+
+volumes:
+  pgq-data:
+    
