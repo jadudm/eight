@@ -1,0 +1,3 @@
+run:
+	DATABASE_URL=postgresql://postgres@localhost:5432/postgres \
+	go run *.go
