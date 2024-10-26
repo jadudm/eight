@@ -1,4 +1,4 @@
-package generic_tlps
+package procs
 
 import (
 	"math/rand/v2"
