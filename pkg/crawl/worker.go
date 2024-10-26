@@ -41,6 +41,8 @@ func (crw *CrawlRequestWorker) Work(
 ) error {
 
 	// Check the cache.
+	// Using channels because we don't know how/where the cache is
+	// implemented, and we just want to send/receive results.
 	crw.CacheKeyChannel <- job_to_string(job)
 	path_s3 := <-crw.CacheValChannel
 
