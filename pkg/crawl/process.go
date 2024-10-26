@@ -3,13 +3,12 @@ package crawl
 import (
 	"log"
 
-	"github.com/riverqueue/river"
 	"search.eight/internal/queueing"
 )
 
-func Crawl(out chan *river.Job[CrawlRequest]) {
+func Crawl(out chan *CrawlRequestJob) {
 	r := queueing.NewRiver()
-	r = queueing.WorkingClient[CrawlRequest, river.Worker[CrawlRequest]](
+	r = queueing.WorkingClient[CrawlRequest, CrawlWorker](
 		r, CrawlRequest{},
 		&CrawlRequestWorker{Out: out})
 
