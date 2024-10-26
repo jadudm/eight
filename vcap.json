@@ -1,0 +1,194 @@
+{
+    "user-provided": [
+        {
+            "label": "queue-server",
+            "name": "queue-server",
+            "tags": [],
+            "instance_guid": "UUIDBRAVO1",
+            "instance_name": "queue-server",
+            "binding_guid": "UUIDBRAVO2",
+            "binding_name": null,
+            "credentials": {
+                "port": 8080,
+                "host": "queue-server",
+                "scheme": "http",
+                "endpoint": "http://queue-server:8080"
+            }
+        },
+        {
+            "label": "scraper",
+            "name": "scraper",
+            "tags": [],
+            "instance_guid": "UUIDBRAVO1",
+            "instance_name": "scraper",
+            "binding_guid": "UUIDBRAVO2",
+            "binding_name": null,
+            "credentials": {
+                "port": 8181,
+                "host": "scraper",
+                "scheme": "http",
+                "endpoint": "http://scraper:8181"
+            }
+        },
+        {
+            "label": "crawler",
+            "name": "crawler",
+            "tags": [],
+            "instance_guid": "UUIDBRAVO1",
+            "instance_name": "crawler",
+            "binding_guid": "UUIDBRAVO2",
+            "binding_name": null,
+            "credentials": {
+                "port": 8282,
+                "host": "crawler",
+                "scheme": "http",
+                "endpoint": "http://crawler:8282",
+                "cache-ttl-minutes": 600,
+                "cache-ttl-seconds": 0
+            }
+        },
+        {
+            "label": "packer",
+            "name": "packer",
+            "tags": [],
+            "instance_guid": "UUIDBRAVO1",
+            "instance_name": "packer",
+            "binding_guid": "UUIDBRAVO2",
+            "binding_name": null,
+            "credentials": {
+                "port": 8383,
+                "host": "packer",
+                "scheme": "http",
+                "endpoint": "http://packer:8383"
+            }
+        },
+        {
+            "label": "searcher",
+            "name": "searcher",
+            "tags": [],
+            "instance_guid": "UUIDBRAVO1",
+            "instance_name": "searcher",
+            "binding_guid": "UUIDBRAVO2",
+            "binding_name": null,
+            "credentials": {
+                "port": 8484,
+                "host": "localhost",
+                "scheme": "http",
+                "endpoint": "http://searcher:8484",
+                "local-disk-limit": 50
+            }
+        }
+    ],
+    "s3": [
+        {
+            "label": "s3",
+            "provider": "minio-local",
+            "plan": "basic",
+            "name": "backups",
+            "tags": [
+                "AWS",
+                "S3",
+                "object-storage"
+            ],
+            "instance_guid": "UUIDALPHA1",
+            "instance_name": "ephemeral-storage",
+            "binding_guid": "UUIDALPHA2",
+            "binding_name": null,
+            "credentials": {
+                "uri": "http://minio:9000",
+                "port": 9000,
+                "insecure_skip_verify": false,
+                "access_key_id": "nutnutnut",
+                "secret_access_key": "nutnutnut",
+                "region": "us-east-1",
+                "bucket": "ephemeral-storage",
+                "endpoint": "minio",
+                "fips_endpoint": "minio",
+                "additional_buckets": []
+            },
+            "syslog_drain_url": "https://ALPHA.drain.url",
+            "volume_mounts": ["no_mounts"]
+        },
+        {
+            "label": "s3",
+            "provider": "minio-local",
+            "plan": "basic",
+            "name": "backups",
+            "tags": [
+                "AWS",
+                "S3",
+                "object-storage"
+            ],
+            "instance_guid": "UUIDALPHA1",
+            "instance_name": "database-storage",
+            "binding_guid": "UUIDALPHA2",
+            "binding_name": null,
+            "credentials": {
+                "uri": "http://minio:9000",
+                "port": 9000,
+                "insecure_skip_verify": false,
+                "access_key_id": "nutnutnut",
+                "secret_access_key": "nutnutnut",
+                "region": "us-east-1",
+                "bucket": "database-storage",
+                "endpoint": "minio",
+                "fips_endpoint": "minio",
+                "additional_buckets": []
+            },
+            "syslog_drain_url": "https://ALPHA.drain.url",
+            "volume_mounts": ["no_mounts"]
+        }
+    ],
+    "aws-rds": [
+        {
+            "label": "fac-db",
+            "provider": null,
+            "plan": null,
+            "name": "fac-db",
+            "tags": [
+                "database",
+                "docker"
+            ],
+            "instance_guid": "UUIDINDIA1",
+            "instance_name": "db",
+            "binding_guid": "UUIDINDIA2",
+            "binding_name": null,
+            "credentials": {
+                "db_name": "postgres",
+                "host": "127.0.0.1",
+                "name": "postgres",
+                "password": "",
+                "port": "5432",
+                "uri": "postgres://postgres@127.0.0.10:5432/postgres?sslmode=disable",
+                "username": "postgres"
+            },
+            "syslog_drain_url": null,
+            "volume_mounts": []
+        },
+        {
+            "label": "fac-snapshot-db",
+            "provider": null,
+            "plan": null,
+            "name": "fac-snapshot-db",
+            "tags": [
+                "database",
+                "docker"
+            ],
+            "instance_guid": "UUIDJULIET1",
+            "instance_name": "db",
+            "binding_guid": "UUIDJULIET2",
+            "binding_name": null,
+            "credentials": {
+                "db_name": "postgres",
+                "host": "127.0.0.1",
+                "name": "postgres",
+                "password": "",
+                "port": "5431",
+                "uri": "postgres://postgres@127.0.0.10:5431/postgres?sslmode=disable",
+                "username": "postgres"
+            },
+            "syslog_drain_url": null,
+            "volume_mounts": []
+        }
+    ]
+}
