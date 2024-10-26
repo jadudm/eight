@@ -27,6 +27,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/nalgeon/redka v0.5.2 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riverqueue/river/riverdriver v0.13.0 // indirect

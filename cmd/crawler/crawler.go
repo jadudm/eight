@@ -1,18 +1,13 @@
 package main
 
 import (
+	"math/rand/v2"
 	"sync"
+	"time"
 
-	q "search.eight/internal/queueing"
+	"github.com/google/uuid"
 	"search.eight/pkg/crawl"
 )
-
-/* *************************** */
-// The crawler looks for CrawlRequest jobs on the crawler queue.
-// It exists to pick up URLs and read them into S3.
-// Then, it inserts a ParseRequest job into the parser queue, so
-// the file in S3 can be processed (possibly generating more CrawlRequests).
-/* *************************** */
 
 func CrawlPage(ch <-chan *crawl.CrawlRequestJob) {
 
@@ -21,13 +16,19 @@ func CrawlPage(ch <-chan *crawl.CrawlRequestJob) {
 func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
+	ch := make(chan *crawl.CrawlRequest)
 
-	// ch1 := make(chan *CrawlRequestJob)
-	// ch2 := make(chan *river.Job[crawl.CrawlRequest])
+	go crawl.Crawl(ch)
 
-	r := q.NewRiver()
-	q.QueueingClient(r, crawl.CrawlRequest{})
+	for {
+		time.Sleep(time.Duration(rand.IntN(10)) * time.Second)
+		t := time.Now()
 
-	// FIXME: Implement a graceful shutdown from docs.
-	wg.Wait()
+		ch <- &crawl.CrawlRequest{
+			Host: uuid.NewString(),
+			Path: t.String(),
+		}
+	}
+
+	//wg.Wait()
 }
