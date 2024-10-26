@@ -15,3 +15,5 @@ func (cr CrawlRequest) InsertOpts() river.InsertOpts {
 		Queue: cr.Kind(),
 	}
 }
+
+type CrawlRequestJob = river.Job[CrawlRequest]
