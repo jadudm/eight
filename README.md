@@ -4,15 +4,41 @@ Experiment [six](https://github.com/jadudm/six) explored the creation of an end-
 
 Experiment eight is about getting some details closer to "right."
 
-## goals
+## goals / design
 
 There are a bunch of possible goals. Some might be incompatible.
 
-* It should be possible to deploy the end-to-end engine as a single binary on a single server, or a constellation of binaries on multiple servers.
-  * Why? Perhaps we want to deploy "micro-search engines" that serve a single site in a specific data/operating, or perhaps we want to provide a common foundation layer.
-* One core theme is "search as data pipeline." This means that the goal is to approach search as a series of successive additions/removals/transformations on data as independent, interacting components/services.
-  * Why? Because there is more to the world of search than text. (And, even then, text can be handled many ways.) 
-* For all their dangers (priority inversion, races, etc.), as much as possible is managed through queues.
+### compliance-first
+
+The goal is a service that can achieve ATO. That means a whole host of things about deployment, access control, logging, etc.
+
+#### FISMA?
+
+Is this a search engine that operates at FISMA Low, Medium, or High? This question will impact some issues of overall service design. For example, we may want to keep separate things separate if we're operating at High. This could be an argument for a "search engine in a box" (next). Systems that want to be clean/separate can just be their own instances.
+
+### single-server, end-to-end
+
+Do I want a "search engine in a box?" That is, do I want to be able to deploy a single server instance, with nothing more than a connection to S3, and be able to run a complete search service? Maybe. That would be an interesting design constraint.
+
+Working with this, though, it suggests that library/module design should be carried out in a way that _either_ many small services can be built, _or_ a single service that combines them all. 
+
+### search is a data pipeline
+
+First you need to crawl a site, and grab the content.
+
+Then you need to process that content. Perhaps you index it. Perhaps you apply AI to images to determine if there are cats present. Or cats eating hotdogs. Or dogs and cats, living together.
+
+Then you need to bundle it up into a search interface...
+
+Then you need to track and store usage and performance...
+
+As much as possible, each service/step will consume some content and produce some content. Ideally, all of this scales embarrasingly: meaning, we have jobs on queues, and can throw more workers at the queues if we need things to go faster. The content consumed, once fetched from the web, is shuffled in and out of S3 buckets.
+
+### Extensible
+
+Everyone wants that. But, if we hold hard-and-fast to a worker/queue model, treat everything as a pipeline, and develop services in a manner that they are pluggable, it becomes possible to imagine having a base service, and then have more advanced services that come at a cost (because, perhaps, they require more resource to devleop, maintain, serve, etc.). 
+
+AWS did this by saying "everything is an API." Much the same here; common APIs and queueing models (ideally with models that can be accessed from multiple languages, so components can be built in whatever tooling makes the most sense) will be the path to extensibility.
 
 ## common component architecture
 
@@ -32,15 +58,33 @@ The queue watcher is a common component that pulls jobs from a queue, and messag
 
 In other contexts, this would be called an "API."
 
+### push vs. pull?
+
+I worry about queue polling. But, I think I worry about pub/sub and its interaction wtih worker pools more. 
+
+That said, I won't rule out `mosquitto`. Or [mochi](https://github.com/mochi-mqtt/server).
+
+(I don't yet have estimates in mind for how much work this system will be doing. Polling might not be an issue.)
+
 # services and components
 
 There are a clear, core set of services and components required.
+
+## storage
+
+Storage will be via S3. For development, a containerized version of Minio. "Same difference," as they say.
+
+The assumption is that services will have no more than 5GB of local storage available to them. They can use it, but it is ephemeral (it goes away with each restart), and it is capped (we only have 5GB).
 
 ## queue server
 
 The queue server can be abstracted over any number of implementations. That is, the substrate can be in-memory, SQLite files, Postgres, or Redis. The interface---the kinds of operations that are supported---is what matters.
 
-_List of desirable properties..._
+Experiment eight is using [River](https://riverqueue.com/) as its job/queue. It has a complete Go library, and is built on top of Postgres.
+
+The authors' mindset is "we know how to work with Postgres." From a service design perspective, my goal is to minimize the number of components involved. For now, what if I can get away with *only* having Postgres.
+
+(I would like to ask the question "can I get away with only having SQLite?" I will come back to this question. That way, I'd have no external service dependencies to manage, and backups are just a push to S3.)
 
 ## crawler
 
