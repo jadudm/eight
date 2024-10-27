@@ -28,10 +28,10 @@ func InsertRandomPages(ch chan *crawl.CrawlRequest) {
 		time.Sleep(time.Duration(rand.IntN(10)) * time.Second)
 		t := time.Now()
 
-		ch <- &crawl.CrawlRequest{
-			Host: uuid.NewString(),
-			Path: t.String(),
-		}
+		cr := crawl.NewCrawlRequest()
+		cr.Host = uuid.NewString()
+		cr.Path = t.String()
+		ch <- &cr
 	}
 }
 

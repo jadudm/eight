@@ -32,10 +32,10 @@ type RequstReturn func(ctx context.Context, input *CrawlRequestInput) (*struct{}
 
 func CrawlRequestHandler(ch chan *crawl.CrawlRequest) RequstReturn {
 	return func(ctx context.Context, input *CrawlRequestInput) (*struct{}, error) {
-		ch <- &crawl.CrawlRequest{
-			Host: input.Body.Host,
-			Path: input.Body.Path,
-		}
+		cr := crawl.NewCrawlRequest()
+		cr.Host = input.Body.Host
+		cr.Path = input.Body.Path
+		ch <- &cr
 		return nil, nil
 	}
 }

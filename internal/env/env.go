@@ -91,7 +91,6 @@ func NewFromFile(vcap_json string) *Env {
 func (e *Env) GetBucket(name string) (Bucket, error) {
 	for _, b := range e.Buckets {
 		if b.Name == name {
-			log.Println(name, b)
 			return b, nil
 		}
 	}

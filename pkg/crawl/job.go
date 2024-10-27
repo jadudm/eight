@@ -8,6 +8,12 @@ type CrawlRequest struct {
 	Path   string `json:"path"`
 }
 
+func NewCrawlRequest() CrawlRequest {
+	cr := CrawlRequest{}
+	cr.Scheme = "https"
+	return cr
+}
+
 func (CrawlRequest) Kind() string { return "crawl" }
 
 func (cr CrawlRequest) InsertOpts() river.InsertOpts {
