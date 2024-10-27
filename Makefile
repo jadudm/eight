@@ -1,2 +1,5 @@
-crawl:
-	export VCAP_SERVICES=$(cat vcap_local.json) ; cd cmd/crawler ; go run *.go
+build:
+	docker build -t eight/dev -f Dockerfile.base .
+
+run:
+	docker compose up

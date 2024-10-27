@@ -8,23 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-
-	"github.com/riverqueue/river"
-	"search.eight/internal/queueing"
-	"search.eight/pkg/procs"
 )
-
-type CrawlRequestWorker struct {
-	CacheKeyChannel chan string
-	CacheValChannel chan string
-	CacheInsChannel chan map[string]string
-	CleanHtmlClient *queueing.River
-	StorageClient   procs.Storage
-
-	river.WorkerDefaults[CrawlRequest]
-}
-
-type CrawlWorker = river.Worker[CrawlRequest]
 
 func job_to_string(job *CrawlRequestJob) string {
 	return fmt.Sprintf("%s/%s", job.Args.Host, job.Args.Path)
