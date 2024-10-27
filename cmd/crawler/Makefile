@@ -10,9 +10,6 @@ PORT ?= 8888
 #
 # to change the port of the server. 
 run:	
-	# FIXME: Move to config
-	#cp ../../vcap.json . 
-	#DATABASE_URL=postgresql://postgres@localhost:5432/postgres \
 	go run *.go -p ${PORT}
 
 build: 
@@ -20,9 +17,6 @@ build:
 
 test:
 	go test
-
-run:
-	go run *.go
 
 check:
 	staticcheck
