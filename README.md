@@ -113,3 +113,6 @@ The authors' mindset is "we know how to work with Postgres." From a service desi
 
 The storage medium could be abstracted away. That is, we might want to store to Postgres _or_ S3. But, there comes a point where you run out of turtles. So, in the spirit of building a notional data pipeline of services that want to do things to content, S3 fees _just fine_.
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jadudm/eight&type=Date)](https://star-history.com/#jadudm/eight&Date)
