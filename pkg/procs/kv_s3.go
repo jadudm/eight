@@ -40,6 +40,7 @@ func (obj S3) Store(key string, value map[string]string) error {
 		log.Println("s3 client")
 		log.Fatal(err)
 	}
+	defer client.Close()
 
 	if obj.Options.Codec == encoding.JSON {
 		key = key + ".json"
