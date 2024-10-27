@@ -1,4 +1,4 @@
-package crawl
+package fetch
 
 import (
 	"context"
@@ -10,17 +10,17 @@ import (
 	"net/url"
 )
 
-func job_to_string(job *CrawlRequestJob) string {
+func job_to_string(job *FetchRequestJob) string {
 	return fmt.Sprintf("%s/%s", job.Args.Host, job.Args.Path)
 }
 
-func job_to_s3_key(job *CrawlRequestJob) string {
+func job_to_s3_key(job *FetchRequestJob) string {
 	sha1 := sha1.Sum([]byte(job.Args.Path))
 	return fmt.Sprintf("%s/%x\n", job.Args.Host, sha1)
 
 }
 
-func fetch_page_content(job *CrawlRequestJob) map[string]string {
+func fetch_page_content(job *FetchRequestJob) map[string]string {
 	url := url.URL{
 		Scheme: job.Args.Scheme,
 		Host:   job.Args.Host,
@@ -46,9 +46,9 @@ func fetch_page_content(job *CrawlRequestJob) map[string]string {
 // The worker just grabs things off the queue and
 // spits them out the channel. The Crawl proc then
 // does the work of processing it.
-func (crw *CrawlRequestWorker) Work(
+func (crw *FetchRequestWorker) Work(
 	ctx context.Context,
-	job *CrawlRequestJob,
+	job *FetchRequestJob,
 ) error {
 
 	// Check the cache.

@@ -1,4 +1,4 @@
-package crawl
+package fetch
 
 import (
 	"log"
@@ -9,7 +9,7 @@ import (
 	"search.eight/pkg/procs"
 )
 
-func Crawl(ch_req chan *CrawlRequest) {
+func Fetch(ch_req chan *FetchRequest) {
 
 	ch_key := make(chan string)
 	ch_val := make(chan string)
@@ -36,9 +36,9 @@ func Crawl(ch_req chan *CrawlRequest) {
 	s3_c := procs.NewKVS3(b)
 
 	work_c := queueing.NewRiver()
-	work_c = queueing.WorkingClient[CrawlRequest, CrawlWorker](
-		work_c, CrawlRequest{},
-		&CrawlRequestWorker{
+	work_c = queueing.WorkingClient[FetchRequest, FetchWorker](
+		work_c, FetchRequest{},
+		&FetchRequestWorker{
 			CacheKeyChannel: ch_key,
 			CacheValChannel: ch_val,
 			CacheInsChannel: ch_ins,

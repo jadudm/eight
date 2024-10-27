@@ -1,4 +1,4 @@
-package crawl
+package fetch
 
 import (
 	"github.com/riverqueue/river"
@@ -6,38 +6,38 @@ import (
 	"search.eight/pkg/procs"
 )
 
-var const_bucket_s3 = "crawl"
+var const_bucket_s3 = "fetch"
 
-type CrawlRequest struct {
+type FetchRequest struct {
 	Scheme string `json:"scheme"`
 	Host   string `json:"host"`
 	Path   string `json:"path"`
 }
 
-func NewCrawlRequest() CrawlRequest {
-	cr := CrawlRequest{}
+func NewFetchRequest() FetchRequest {
+	cr := FetchRequest{}
 	cr.Scheme = "https"
 	return cr
 }
 
-func (CrawlRequest) Kind() string { return "crawl" }
+func (FetchRequest) Kind() string { return "fetch" }
 
-func (cr CrawlRequest) InsertOpts() river.InsertOpts {
+func (cr FetchRequest) InsertOpts() river.InsertOpts {
 	return river.InsertOpts{
 		Queue: cr.Kind(),
 	}
 }
 
-type CrawlRequestJob = river.Job[CrawlRequest]
+type FetchRequestJob = river.Job[FetchRequest]
 
-type CrawlRequestWorker struct {
+type FetchRequestWorker struct {
 	CacheKeyChannel chan string
 	CacheValChannel chan string
 	CacheInsChannel chan map[string]string
 	CleanHtmlClient *queueing.River
 	StorageClient   procs.Storage
 
-	river.WorkerDefaults[CrawlRequest]
+	river.WorkerDefaults[FetchRequest]
 }
 
-type CrawlWorker = river.Worker[CrawlRequest]
+type FetchWorker = river.Worker[FetchRequest]

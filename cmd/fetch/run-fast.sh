@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export SERVICE=crawler
+export SERVICE=fetch
 
 pushd /home/vcap/app/cmd/${SERVICE}
     echo Running the $SERVICE

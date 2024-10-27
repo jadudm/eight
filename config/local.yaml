@@ -5,11 +5,15 @@ PWD: "/home/vcap"
 TMPDIR: "/home/vcap/tmp"
 USER: "vcap"
 VCAP_SERVICES:
+  user-provided:
+    - name: "fetch"
+      credentials:
+        port: 8888
   s3:
     - label: "s3"
       provider: "minio-local"
       plan: "basic"
-      name: "crawl"
+      name: "fetch"
       tags:
         - "AWS"
         - "S3"
@@ -18,7 +22,7 @@ VCAP_SERVICES:
       instance_guid: "d77a8446-2285-4489-8f92-5f0e32e272ab"
       binding_guid: "e686ea8d-4bf4-4c8e-8a43-d69256364bca"
       binding_name: null
-      instance_name: "crawl-storage"
+      instance_name: "fetch-storage"
       credentials:
         uri: "http://minio:9000"
         port: 9000
@@ -26,7 +30,7 @@ VCAP_SERVICES:
         access_key_id: "nutnutnut"
         secret_access_key: "nutnutnut"
         region: "us-east-1"
-        bucket: "crawl"
+        bucket: "fetch"
         endpoint: "http://minio:9000"
         fips_endpoint: "http://minio:9000"
         additional_buckets: []

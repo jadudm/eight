@@ -103,9 +103,9 @@ The authors' mindset is "we know how to work with Postgres." From a service desi
 
 (I would like to ask the question "can I get away with only having SQLite?" I will come back to this question. That way, I'd have no external service dependencies to manage, and backups are just a push to S3.)
 
-## crawler
+## fetch
 
-The crawler needs to:
+`fetch` needs to:
 
 1. Dequeue pages from a frontier queue
 2. Store pages in S3
