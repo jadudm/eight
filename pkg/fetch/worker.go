@@ -3,11 +3,13 @@ package fetch
 import (
 	"context"
 	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 func job_to_string(job *FetchRequestJob) string {
@@ -15,8 +17,8 @@ func job_to_string(job *FetchRequestJob) string {
 }
 
 func job_to_s3_key(job *FetchRequestJob) string {
-	sha1 := sha1.Sum([]byte(job.Args.Path))
-	return fmt.Sprintf("%s/%x\n", job.Args.Host, sha1)
+	sha1 := sha1.Sum([]byte(job.Args.Host + job.Args.Path))
+	return fmt.Sprintf("%s/%x", job.Args.Host, sha1)
 
 }
 
@@ -38,9 +40,20 @@ func fetch_page_content(job *FetchRequestJob) map[string]string {
 		log.Fatal(err)
 	}
 
-	return map[string]string{
-		"content": string(content),
+	response := map[string]string{
+		"content":        base64.URLEncoding.EncodeToString(content),
+		"sha1":           fmt.Sprintf("%x", sha1.Sum(content)),
+		"content-length": fmt.Sprintf("%d", len(content)),
+		"host":           job.Args.Host,
+		"path":           job.Args.Path,
 	}
+
+	// Copy in all of the response headers.
+	for k := range res.Header {
+		response[strings.ToLower(k)] = res.Header.Get(k)
+	}
+
+	return response
 }
 
 // The worker just grabs things off the queue and

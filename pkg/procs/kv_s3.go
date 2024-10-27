@@ -32,7 +32,7 @@ func NewKVS3(b env.Bucket) S3 {
 	return s3
 }
 
-func (obj S3) Store(key string, value any) error {
+func (obj S3) Store(key string, value map[string]string) error {
 
 	client, err := s3.NewClient(obj.Options)
 
@@ -41,7 +41,12 @@ func (obj S3) Store(key string, value any) error {
 		log.Fatal(err)
 	}
 
-	key = key + ".json"
+	if obj.Options.Codec == encoding.JSON {
+		key = key + ".json"
+	} else if obj.Options.Codec == encoding.Gob {
+		key = key + ".gob"
+	}
+
 	err = client.Set(key, value)
 
 	if err != nil {

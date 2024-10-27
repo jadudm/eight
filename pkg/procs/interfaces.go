@@ -1,5 +1,5 @@
 package procs
 
 type Storage interface {
-	Store(string, any) error
+	Store(string, map[string]string) error
 }
