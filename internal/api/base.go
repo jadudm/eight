@@ -16,5 +16,7 @@ func BaseMux() *chi.Mux {
 		w.Write([]byte("HELO"))
 	})
 
+	MemInfo(r)
+
 	return r
 }

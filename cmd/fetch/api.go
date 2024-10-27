@@ -19,9 +19,9 @@ type FetchRequestInput struct {
 	}
 }
 
-type RequstReturn func(ctx context.Context, input *FetchRequestInput) (*struct{}, error)
+type RequestReturn func(ctx context.Context, input *FetchRequestInput) (*struct{}, error)
 
-func FetchRequestHandler(ch chan *fetch.FetchRequest) RequstReturn {
+func FetchRequestHandler(ch chan *fetch.FetchRequest) RequestReturn {
 	return func(ctx context.Context, input *FetchRequestInput) (*struct{}, error) {
 		cr := fetch.NewFetchRequest()
 		cr.Host = input.Body.Host
