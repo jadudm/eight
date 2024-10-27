@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/riverqueue/river"
+	"search.eight/internal/env"
 	"search.eight/internal/queueing"
 	"search.eight/pkg/cleaner"
 )
@@ -15,6 +16,7 @@ type CrawlRequestWorker struct {
 	CacheValChannel chan string
 	CacheInsChannel chan map[string]string
 	CleanHtmlClient *queueing.River
+	Bucket          *env.Bucket
 
 	river.WorkerDefaults[CrawlRequest]
 }
@@ -27,8 +29,9 @@ func job_to_string(job *CrawlRequestJob) string {
 	return fmt.Sprintf("%s/%s", job.Args.Host, job.Args.Path)
 }
 
-func store_to_s3(host string, path string) (string, error) {
-	log.Println("STORE TO S3", host, path)
+func store_to_s3(bucket *env.Bucket, host string, path string) (string, error) {
+	log.Println(bucket)
+	log.Println("STORE TO S3", bucket.Credentials, host, path)
 	return host + "/" + path, nil
 }
 
@@ -56,7 +59,7 @@ func (crw *CrawlRequestWorker) Work(
 	}
 
 	// If it is not cached, we have work to do.
-	path, err := store_to_s3(job.Args.Host, job.Args.Path)
+	path, err := store_to_s3(crw.Bucket, job.Args.Host, job.Args.Path)
 	// We get an error if we can't write to S3
 	if err != nil {
 		// FIXME: think about error handling from workers

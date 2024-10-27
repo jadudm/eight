@@ -1,3 +1,4 @@
+# SHELL := /bin/bash
 PORT ?= 8888
 
 # make run
@@ -7,7 +8,7 @@ PORT ?= 8888
 # make run PORT=3000
 #
 # to change the port of the server. 
-
-run:
+run:	
+	cp ../../vcap.json . 
 	DATABASE_URL=postgresql://postgres@localhost:5432/postgres \
 	go run *.go -p ${PORT}

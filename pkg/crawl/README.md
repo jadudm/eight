@@ -36,3 +36,7 @@ If we check, and `""` comes back, it isn't in the cache.
 
 * https://github.com/tidwall/sjson
 * https://github.com/tidwall/gjson
+* https://huma.rocks/
+* https://github.com/go-chi/chi
+* https://riverqueue.com/
+* https://github.com/cloudfoundry-community/go-cfenv
