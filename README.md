@@ -22,6 +22,23 @@ Do I want a "search engine in a box?" That is, do I want to be able to deploy a 
 
 Working with this, though, it suggests that library/module design should be carried out in a way that _either_ many small services can be built, _or_ a single service that combines them all. 
 
+### live vs. static
+
+There is one world where the search component is live; that is, a page might be querying an app on our infra, and receiving results.
+
+There is another world where the result of the indexing and content cleanup is a static asset that can be embedded in a static site build. 
+
+There might be a third world where all of this runs on someone else's infrastructure to produce the assets in question---dynamic or otherwise. 
+
+For now, being able to handle an end-to-end process that yields a living search engine, and knowing that it can also generate a static site search as well.
+
+Possible static site tools:
+
+* [tinysearch](https://github.com/tinysearch/tinysearch)
+* [pagefind](https://pagefind.app/)
+
+and the Hugo project maintains a [list of more](https://gohugo.io/tools/search/).
+
 ### search is a data pipeline
 
 First you need to crawl a site, and grab the content.
@@ -34,7 +51,7 @@ Then you need to track and store usage and performance...
 
 As much as possible, each service/step will consume some content and produce some content. Ideally, all of this scales embarrasingly: meaning, we have jobs on queues, and can throw more workers at the queues if we need things to go faster. The content consumed, once fetched from the web, is shuffled in and out of S3 buckets.
 
-### Extensible
+### extensible
 
 Everyone wants that. But, if we hold hard-and-fast to a worker/queue model, treat everything as a pipeline, and develop services in a manner that they are pluggable, it becomes possible to imagine having a base service, and then have more advanced services that come at a cost (because, perhaps, they require more resource to devleop, maintain, serve, etc.). 
 
