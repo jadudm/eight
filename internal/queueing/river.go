@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"log/slog"
-	"os"
 	"time"
 
 	pgx "github.com/jackc/pgx/v5"
@@ -13,6 +12,7 @@ import (
 	rpgxv5 "github.com/riverqueue/river/riverdriver/riverpgxv5"
 	rivermigrate "github.com/riverqueue/river/rivermigrate"
 	"github.com/riverqueue/river/rivershared/util/slogutil"
+	"search.eight/internal/env"
 )
 
 // type QueueNameType string
@@ -37,7 +37,12 @@ func (r *River) initialize() {
 	r.Context = context.Background()
 
 	// Set up a pool
-	pool, err := pgxpool.New(r.Context, os.Getenv("DATABASE_URL"))
+	connection_string, err := env.Env.GetDatabaseUrl("queue-db")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	pool, err := pgxpool.New(r.Context, connection_string)
 	if err != nil {
 		// handle error
 	}

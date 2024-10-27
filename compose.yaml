@@ -22,7 +22,7 @@ services:
     depends_on:
       minio:
         condition: service_healthy
-      queue_db:
+      queue-db:
         condition: service_healthy
     healthcheck:
       test: curl --fail http://crawler:8888/heartbeat || exit 1
@@ -41,15 +41,15 @@ services:
     ports:
       - 10010:8080
     environment:
-      DATABASE_URL: postgresql://postgres@queue_db:5432/postgres
+      DATABASE_URL: postgresql://postgres@queue-db:5432/postgres
     depends_on:
-      queue_db:
+      queue-db:
         condition: service_healthy
 
   #-----------------------------------------------------
-  # postgres - queue_db
+  # postgres - queue-db
   #-----------------------------------------------------
-  queue_db:
+  queue-db:
     image: postgres:16-alpine
     ports:
       - 5432:5432
@@ -60,7 +60,8 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: "trust"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      # test: ["CMD-SHELL", "pg_isready", "-d", "postgres", "-U", "postgres"]
+      test: ["CMD-SHELL", "pg_isready -d postgres -U postgres"]
       interval: 30s
       timeout: 60s
       retries: 5

@@ -3,12 +3,12 @@
 FROM eight/builder
 
 # Copy in the binaries
-WORKDIR /app
+WORKDIR /home/vcap/app
 COPY . .
-WORKDIR /app/cmd/crawler
+WORKDIR /home/vcap/app/cmd/crawler
 RUN make container_build
-RUN chmod 755 /app/cmd/crawler/run.sh
+RUN chmod 755 /home/vcap/app/cmd/crawler/run.sh
 
-CMD ["/app/cmd/crawler/run.sh"]
+CMD ["/home/vcap/app/cmd/crawler/run-fast.sh"]
 
 
