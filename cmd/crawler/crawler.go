@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"search.eight/internal/env"
 	"search.eight/pkg/crawl"
 )
 
@@ -36,11 +37,13 @@ func InsertRandomPages(ch chan *crawl.CrawlRequest) {
 }
 
 func main() {
+	env.InitGlobalEnv()
+
 	ch := make(chan *crawl.CrawlRequest)
 
 	r := BaseMux()
-	cli, env := ApiCli(r, ch)
+	cli := ApiCli(r, ch)
 
-	go crawl.Crawl(ch, env)
+	go crawl.Crawl(ch)
 	cli.Run()
 }

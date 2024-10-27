@@ -9,7 +9,6 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/danielgtaylor/huma/v2/humacli"
 	"github.com/go-chi/chi/v5"
-	"search.eight/internal/env"
 	"search.eight/pkg/crawl"
 )
 
@@ -40,12 +39,9 @@ func CrawlRequestHandler(ch chan *crawl.CrawlRequest) RequstReturn {
 	}
 }
 
-func ApiCli(router *chi.Mux, ch chan *crawl.CrawlRequest) (humacli.CLI, *env.Env) {
+func ApiCli(router *chi.Mux, ch chan *crawl.CrawlRequest) humacli.CLI {
 	// Create a new router & API
 	// router := chi.NewMux()
-	var e *env.Env
-
-	e = env.NewFromFile("vcap.json")
 
 	cli := humacli.New(func(hooks humacli.Hooks, options *Options) {
 		// Will this layer on top of the router I pass in?
@@ -70,5 +66,5 @@ func ApiCli(router *chi.Mux, ch chan *crawl.CrawlRequest) (humacli.CLI, *env.Env
 		})
 	})
 
-	return cli, e
+	return cli
 }

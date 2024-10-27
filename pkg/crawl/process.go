@@ -3,13 +3,13 @@ package crawl
 import (
 	"log"
 
-	"search.eight/internal/env"
+	env "search.eight/internal/env"
 	"search.eight/internal/queueing"
 	"search.eight/pkg/cleaner"
 	"search.eight/pkg/procs"
 )
 
-func Crawl(ch_req chan *CrawlRequest, env *env.Env) {
+func Crawl(ch_req chan *CrawlRequest) {
 
 	ch_key := make(chan string)
 	ch_val := make(chan string)
@@ -26,7 +26,7 @@ func Crawl(ch_req chan *CrawlRequest, env *env.Env) {
 	queueing.QueueingClient(clean_c, cleaner.CleanHtmlRequest{})
 
 	// Set up the worker.
-	b, err := env.GetBucket(const_bucket_s3)
+	b, err := env.Env.GetBucket(const_bucket_s3)
 
 	if err != nil {
 		log.Println("cannot get bucket")
