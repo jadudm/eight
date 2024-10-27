@@ -41,7 +41,7 @@ func fetch_page_content(job *FetchRequestJob) map[string]string {
 	}
 
 	response := map[string]string{
-		"content":        base64.URLEncoding.EncodeToString(content),
+		"raw":            base64.URLEncoding.EncodeToString(content),
 		"sha1":           fmt.Sprintf("%x", sha1.Sum(content)),
 		"content-length": fmt.Sprintf("%d", len(content)),
 		"host":           job.Args.Host,
