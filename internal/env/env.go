@@ -11,37 +11,38 @@ import (
 
 type Credentials struct {
 	// Common
-	Uri  string
-	Port int
+	Uri  string `mapstructure:"uri"`
+	Port int    `mapstructure:"port"`
 	// S3
-	AccessKeyId     string
-	SecretAccessKey string
-	Region          string
-	Bucket          string
-	Endpoint        string
+	AccessKeyId     string `mapstructure:"access_key_id"`
+	SecretAccessKey string `mapstructure:"secret_access_key"`
+	Region          string `mapstructure:"region"`
+	Bucket          string `mapstructure:"bucket"`
+	Endpoint        string `mapstructure:"endpoint"`
 	// DB
-	DbName   string
-	Host     string
-	Name     string
-	Password string
-	Username string
-}
-type Bucket struct {
-	Name        string
-	Credentials Credentials
+	DbName   string `mapstructure:"db_name"`
+	Host     string `mapstructure:"host"`
+	Name     string `mapstructure:"name"`
+	Password string `mapstructure:"password"`
+	Username string `mapstructure:"username"`
 }
 
-type Database struct {
-	Name        string
-	Credentials Credentials
+type Service struct {
+	Name        string      `mapstructure:"name"`
+	Credentials Credentials `mapstructure:"credentials"`
 }
+
+type Database = Service
+type Bucket = Service
+
 type env struct {
-	AppEnv      string `mapstructure:"APPENV"`
-	Home        string `mapstructure:"HOME"`
-	MemoryLimit string `mapstructure:"MEMORY_LIMIT"`
-	Pwd         string `mapstructure:"PWD"`
-	TmpDir      string `mapstructure:"TMPDIR"`
-	User        string `mapstructure:"USER"`
+	AppEnv       string               `mapstructure:"APPENV"`
+	Home         string               `mapstructure:"HOME"`
+	MemoryLimit  string               `mapstructure:"MEMORY_LIMIT"`
+	Pwd          string               `mapstructure:"PWD"`
+	TmpDir       string               `mapstructure:"TMPDIR"`
+	User         string               `mapstructure:"USER"`
+	VcapServices map[string][]Service `mapstructure:"VCAP_SERVICES"`
 
 	Buckets   []Bucket
 	Databases []Database
@@ -64,10 +65,11 @@ func InitGlobalEnv() {
 
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("/home/vcap/app/config")
+	viper.AddConfigPath("../../config")
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatal("can't find the file .env : ", err)
+		log.Fatal("can't find config files: ", err)
 	}
 
 	err = viper.Unmarshal(&Env)
@@ -76,9 +78,18 @@ func InitGlobalEnv() {
 	}
 
 	// Configure the buckets and databases
-	configureBuckets()
-	configureDatabases()
+	Env.Buckets = Env.VcapServices["s3"]
+	Env.Databases = Env.VcapServices["aws-rds"]
 
+}
+
+func (e *env) GetServiceByName(category string, name string) (*Service, error) {
+	for _, s := range e.VcapServices[category] {
+		if s.Name == name {
+			return &s, nil
+		}
+	}
+	return nil, fmt.Errorf("no service in category %s found with name %s", category, name)
 }
 
 // https://stackoverflow.com/questions/3582552/what-is-the-format-for-the-postgresql-connection-string-url
@@ -111,52 +122,10 @@ func (e *env) GetBucket(name string) (Bucket, error) {
 	return Bucket{}, fmt.Errorf("no bucket with name %s", name)
 }
 
-func configureBuckets() {
-	vcap := viper.Get("VCAP_SERVICES").(map[string]interface{})
-	for _, b := range vcap["s3"].([]interface{}) {
-		b := b.(map[string]interface{})
-		creds := b["credentials"].(map[string]interface{})
-		bucket := Bucket{
-			Name: b["name"].(string),
-			Credentials: Credentials{
-				Uri:             creds["uri"].(string),
-				Port:            creds["port"].(int),
-				AccessKeyId:     creds["access_key_id"].(string),
-				SecretAccessKey: creds["secret_access_key"].(string),
-				Region:          creds["region"].(string),
-				Bucket:          creds["bucket"].(string),
-				Endpoint:        creds["endpoint"].(string),
-			},
-		}
-		Env.Buckets = append(Env.Buckets, bucket)
-	}
-}
-
 func is_local_env() bool {
 	return slices.Contains(local_envs, os.Getenv("ENV"))
 }
 
 func is_cf_env() bool {
 	return slices.Contains(cf_envs, os.Getenv("ENV"))
-}
-
-func configureDatabases() {
-	vcap := viper.Get("VCAP_SERVICES").(map[string]interface{})
-	for _, b := range vcap["aws-rds"].([]interface{}) {
-		b := b.(map[string]interface{})
-		creds := b["credentials"].(map[string]interface{})
-		db := Database{
-			Name: b["name"].(string),
-			Credentials: Credentials{
-				DbName:   creds["db_name"].(string),
-				Port:     creds["port"].(int),
-				Name:     creds["name"].(string),
-				Password: creds["password"].(string),
-				Username: creds["username"].(string),
-				Uri:      creds["uri"].(string),
-				Host:     creds["host"].(string),
-			},
-		}
-		Env.Databases = append(Env.Databases, db)
-	}
 }

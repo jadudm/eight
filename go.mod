@@ -52,6 +52,7 @@ require (
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/nalgeon/redka v0.5.2 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
+	github.com/oleiade/reflections v1.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
