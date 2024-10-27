@@ -16,11 +16,11 @@ type S3 struct {
 func NewKVS3(b env.Bucket) S3 {
 	options := s3.Options{
 		BucketName:             b.Name,
-		Region:                 b.Credentials["region"].(string),
-		CustomEndpoint:         b.Credentials["endpoint"].(string),
+		Region:                 b.Credentials.Region,
+		CustomEndpoint:         b.Credentials.Endpoint,
 		UsePathStyleAddressing: true,
-		AWSaccessKeyID:         b.Credentials["access_key_id"].(string),
-		AWSsecretAccessKey:     b.Credentials["secret_access_key"].(string),
+		AWSaccessKeyID:         b.Credentials.AccessKeyId,
+		AWSsecretAccessKey:     b.Credentials.SecretAccessKey,
 		Codec:                  encoding.JSON,
 	}
 	s3 := S3{
