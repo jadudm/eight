@@ -12,12 +12,6 @@ import (
 
 var FETCH_API_VERSION = "1.0.0"
 
-// Options for the CLI.
-type Options struct {
-	Port   int    `help:"Port to listen on" short:"p" default:"8888"`
-	Config string `help:"VCAP_SERVICES JSON file" short:"c" default:"vcap.json"`
-}
-
 type FetchRequestInput struct {
 	Body struct {
 		Host string `json:"host" maxLength:"500" doc:"Host of resource"`

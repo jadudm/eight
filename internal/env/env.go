@@ -65,7 +65,6 @@ func InitGlobalEnv() {
 
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("/home/vcap/app/config")
-	viper.AddConfigPath("../../config")
 
 	err := viper.ReadInConfig()
 	if err != nil {
