@@ -33,6 +33,8 @@ func Crawl(ch_req chan *CrawlRequest, env *env.Env) {
 		log.Fatal(err)
 	}
 
+	s3_c := procs.NewKVS3(b)
+
 	work_c := queueing.NewRiver()
 	work_c = queueing.WorkingClient[CrawlRequest, CrawlWorker](
 		work_c, CrawlRequest{},
@@ -41,7 +43,7 @@ func Crawl(ch_req chan *CrawlRequest, env *env.Env) {
 			CacheValChannel: ch_val,
 			CacheInsChannel: ch_ins,
 			CleanHtmlClient: clean_c,
-			Bucket:          &b, //FIXME: get bucket by name. Support code in `env`, perhaps
+			StorageClient:   s3_c,
 		})
 
 	if err := work_c.Client.Start(work_c.Context); err != nil {

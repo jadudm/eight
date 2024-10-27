@@ -28,7 +28,6 @@
                 "object-storage"
             ],
             "instance_guid": "UUIDALPHA1",
-            "instance_name": "ephemeral-storage",
             "binding_guid": "UUIDALPHA2",
             "binding_name": null,
             "credentials": {
@@ -37,9 +36,9 @@
                 "insecure_skip_verify": false,
                 "access_key_id": "nutnutnut",
                 "secret_access_key": "nutnutnut",
-                "region": "us-east-1",
-                "bucket": "ephemeral-storage",
-                "endpoint": "minio",
+                "region": "us-east-2",
+                "bucket": "crawl",
+                "endpoint": "http://localhost:9000",
                 "fips_endpoint": "minio",
                 "additional_buckets": []
             },

@@ -2,13 +2,16 @@ package crawl
 
 import (
 	"context"
+	"crypto/sha1"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"net/url"
 
 	"github.com/riverqueue/river"
-	"search.eight/internal/env"
 	"search.eight/internal/queueing"
-	"search.eight/pkg/cleaner"
+	"search.eight/pkg/procs"
 )
 
 type CrawlRequestWorker struct {
@@ -16,12 +19,10 @@ type CrawlRequestWorker struct {
 	CacheValChannel chan string
 	CacheInsChannel chan map[string]string
 	CleanHtmlClient *queueing.River
-	Bucket          *env.Bucket
+	StorageClient   procs.Storage
 
 	river.WorkerDefaults[CrawlRequest]
 }
-
-// // https://github.com/philippgille/gokv?tab=readme-ov-file#usage
 
 type CrawlWorker = river.Worker[CrawlRequest]
 
@@ -29,10 +30,33 @@ func job_to_string(job *CrawlRequestJob) string {
 	return fmt.Sprintf("%s/%s", job.Args.Host, job.Args.Path)
 }
 
-func store_to_s3(bucket *env.Bucket, host string, path string) (string, error) {
-	log.Println(bucket)
-	log.Println("STORE TO S3", bucket.Credentials, host, path)
-	return host + "/" + path, nil
+func job_to_s3_key(job *CrawlRequestJob) string {
+	sha1 := sha1.Sum([]byte(job.Args.Path))
+	return fmt.Sprintf("%s/%x\n", job.Args.Host, sha1)
+
+}
+
+func fetch_page_content(job *CrawlRequestJob) map[string]string {
+	url := url.URL{
+		Scheme: job.Args.Scheme,
+		Host:   job.Args.Host,
+		Path:   job.Args.Path,
+	}
+
+	res, err := http.Get(url.String())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	content, err := io.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return map[string]string{
+		"content": string(content),
+	}
 }
 
 // The worker just grabs things off the queue and
@@ -59,25 +83,28 @@ func (crw *CrawlRequestWorker) Work(
 	}
 
 	// If it is not cached, we have work to do.
-	path, err := store_to_s3(crw.Bucket, job.Args.Host, job.Args.Path)
+	// path, err := store_to_s3(crw.Bucket, job.Args.Host, job.Args.Path)
+	page_bytes := fetch_page_content(job)
+
+	err := crw.StorageClient.Store(job_to_s3_key(job), page_bytes)
+
 	// We get an error if we can't write to S3
 	if err != nil {
-		// FIXME: think about error handling from workers
-		// This is just passing it back.
+		log.Println("could not store k/v")
 		log.Println(err)
 		return err
 	}
 
 	// Update the cache
 	crw.CacheInsChannel <- map[string]string{
-		job_to_string(job): path,
+		job_to_string(job): path_s3,
 	}
 
-	// Enqueue next jobs
-	crw.CleanHtmlClient.Insert(cleaner.CleanHtmlRequest{
-		Bucket: "test",
-		Path:   "a/b/c",
-	})
+	// // Enqueue next jobs
+	// crw.CleanHtmlClient.Insert(cleaner.CleanHtmlRequest{
+	// 	Bucket: "test",
+	// 	Path:   "a/b/c",
+	// })
 
 	return nil
 }
