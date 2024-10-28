@@ -51,6 +51,8 @@ func Fetch(ch_req chan *FetchRequest) {
 		log.Fatal(err)
 	}
 
+	// Sit and watch for requests via the API.
+	// Insert them into the queue.
 	for {
 		job := <-ch_req
 		work_c.Insert(job)

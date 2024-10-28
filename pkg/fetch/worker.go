@@ -74,8 +74,8 @@ func (crw *FetchRequestWorker) Work(
 	// We'll queue the cleaner. All we know at this point
 	// is that it was pulled down, and we have it in S3.
 	if path_s3 != "" {
-		// Go back to the top of the loop and wait
-		// for something else on the channel.
+		// Return with an OK status, because we don't
+		// want to re-process this content yet.
 		return nil
 	}
 
