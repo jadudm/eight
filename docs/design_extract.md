@@ -11,7 +11,7 @@ sequenceDiagram
   participant S as S3
   # ---
   Q->>E: get job
-  note right of Q: host, path 
+  note right of Q: host 
   E->>S: get raw
   activate S
   S->>E: JSON
