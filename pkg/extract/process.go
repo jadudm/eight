@@ -35,9 +35,9 @@ func Extract(ch_req chan *ExtractRequest) {
 	work_c = queueing.WorkingClient[ExtractRequest, ExtractWorker](
 		work_c, ExtractRequest{},
 		&ExtractRequestWorker{
-			FetchClient:   s3_fc,
-			ExtractClient: s3_ec,
-			EnqueueClient: e_c,
+			FetchStorage:   s3_fc,
+			ExtractStorage: s3_ec,
+			EnqueueClient:  e_c,
 		})
 
 	if err := work_c.Client.Start(work_c.Context); err != nil {

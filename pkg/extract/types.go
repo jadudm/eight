@@ -29,9 +29,9 @@ func (er ExtractRequest) InsertOpts() river.InsertOpts {
 type ExtractRequestJob = river.Job[ExtractRequest]
 
 type ExtractRequestWorker struct {
-	FetchClient   procs.Storage
-	ExtractClient procs.Storage
-	EnqueueClient *queueing.River
+	FetchStorage   procs.Storage
+	ExtractStorage procs.Storage
+	EnqueueClient  *queueing.River
 	river.WorkerDefaults[ExtractRequest]
 }
 

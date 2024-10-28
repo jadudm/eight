@@ -28,6 +28,22 @@ To fetch a page from the net, and store it to S3:
 http PUT localhost:10000/fetch host=cloud.gov path=/pages
 ```
 
+To fetch a PDF, and see it extracted:
+
+```
+http PUT localhost:10000/fetch host=app.fac.gov path=/dissemination/report/pdf/2023-09-GSAFAC-0000063050
+```
+
+(approximately 100 pages)
+
+or
+
+```
+http PUT localhost:10000/fetch host=fac.gov path=assets/compliance/2024-Compliance-Supplement.pdf
+```
+
+(approximately 2100 pages -- the [2CFR200 Appendix XI Compliance Supplement](https://www.fac.gov/assets/compliance/2024-Compliance-Supplement.pdf))
+
 ### browsing the local S3 store
 
 [Minio](https://min.io) is used to simulate S3 locally. 
