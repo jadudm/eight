@@ -65,3 +65,22 @@ This lets you watch the queues at [localhost:11111](http://localhost:11111) prov
 I saw this on another project and thought it was cute. Here, it might be ironic.
 
 [![Star History Chart](https://api.star-history.com/svg?repos=jadudm/eight&type=Date)](https://star-history.com/#jadudm/eight&Date)
+
+## by the numbers
+
+```
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+Go                              24            244            104           1109
+Markdown                        11            167              0            246
+JSON                             1              0              0            199
+YAML                             2              7             25            189
+Dockerfile                       3             14              6             40
+make                             3              5              0             16
+Python                           1              4              0             15
+Bourne Shell                     2              4              0             12
+-------------------------------------------------------------------------------
+SUM:                            47            445            135           1826
+-------------------------------------------------------------------------------
+```
