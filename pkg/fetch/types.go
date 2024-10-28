@@ -2,11 +2,10 @@ package fetch
 
 import (
 	"github.com/riverqueue/river"
+	env "search.eight/internal/env"
 	"search.eight/internal/queueing"
 	"search.eight/pkg/procs"
 )
-
-var const_bucket_s3 = "fetch"
 
 type FetchRequest struct {
 	Scheme string `json:"scheme"`
@@ -20,7 +19,10 @@ func NewFetchRequest() FetchRequest {
 	return cr
 }
 
-func (FetchRequest) Kind() string { return "fetch" }
+func (FetchRequest) Kind() string {
+	b, _ := env.Env.GetBucket("fetch")
+	return b.Name
+}
 
 func (cr FetchRequest) InsertOpts() river.InsertOpts {
 	return river.InsertOpts{
@@ -34,9 +36,8 @@ type FetchRequestWorker struct {
 	CacheKeyChannel chan string
 	CacheValChannel chan string
 	CacheInsChannel chan map[string]string
-	CleanHtmlClient *queueing.River
+	EnqueueClient   *queueing.River
 	StorageClient   procs.Storage
-
 	river.WorkerDefaults[FetchRequest]
 }
 

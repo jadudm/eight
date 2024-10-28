@@ -32,12 +32,43 @@ services:
       ENV: "DOCKER"
 
   #-----------------------------------------------------
+  # extract
+  #-----------------------------------------------------
+  extract:
+    container_name: extract
+    image: eight/dev
+    build: 
+      context: .
+      dockerfile: ./cmd/extract/Dockerfile
+    entrypoint: /home/vcap/app/cmd/extract/run-fast.sh
+    volumes:
+      - type: bind
+        source: .
+        target: /app
+    ports:
+      - 10001:8888
+    # https://docs.docker.com/compose/how-tos/startup-order/
+    depends_on:
+      minio:
+        condition: service_healthy
+      queue-db:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail http://extract:8888/heartbeat || exit 1
+      interval: 60s
+      timeout: 180s
+      retries: 3
+      start_period: 60s
+    environment:
+      ENV: "DOCKER"
+
+  #-----------------------------------------------------
   # river queue watcher
   #-----------------------------------------------------
   ui:
     image: ghcr.io/riverqueue/riverui:latest
     ports:
-      - 10010:8080
+      - 11111:8080
     environment:
       DATABASE_URL: postgresql://postgres@queue-db:5432/postgres
     depends_on:

@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"search.eight/pkg/extract"
 )
 
 func job_to_string(job *FetchRequestJob) string {
@@ -97,11 +99,9 @@ func (crw *FetchRequestWorker) Work(
 		job_to_string(job): path_s3,
 	}
 
-	// // Enqueue next jobs
-	// crw.CleanHtmlClient.Insert(cleaner.CleanHtmlRequest{
-	// 	Bucket: "test",
-	// 	Path:   "a/b/c",
-	// })
+	crw.EnqueueClient.Insert(extract.ExtractRequest{
+		Host: job.Args.Host,
+	})
 
 	return nil
 }

@@ -42,7 +42,7 @@ There is a UI for monitoring the queues.
 
 ![alt text](docs/images/riverui.png)
 
-This lets you watch the queues at [localhost:10010](http://localhost:10010) provided by [River](https://riverqueue.com/), a queueing library/system built on Postgres. 
+This lets you watch the queues at [localhost:11111](http://localhost:11111) provided by [River](https://riverqueue.com/), a queueing library/system built on Postgres. 
 
 ## star history
 

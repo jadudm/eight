@@ -5,7 +5,7 @@ import (
 
 	env "search.eight/internal/env"
 	"search.eight/internal/queueing"
-	"search.eight/pkg/cleaner"
+	"search.eight/pkg/extract"
 	"search.eight/pkg/procs"
 )
 
@@ -23,10 +23,10 @@ func Fetch(ch_req chan *FetchRequest) {
 
 	// This lets us queue new jobs.
 	clean_c := queueing.NewRiver()
-	queueing.QueueingClient(clean_c, cleaner.CleanHtmlRequest{})
+	queueing.QueueingClient(clean_c, extract.ExtractRequest{})
 
 	// Set up the worker.
-	b, err := env.Env.GetBucket(const_bucket_s3)
+	b, err := env.Env.GetBucket("fetch")
 
 	if err != nil {
 		log.Println("cannot get bucket")
@@ -42,7 +42,7 @@ func Fetch(ch_req chan *FetchRequest) {
 			CacheKeyChannel: ch_key,
 			CacheValChannel: ch_val,
 			CacheInsChannel: ch_ins,
-			CleanHtmlClient: clean_c,
+			EnqueueClient:   clean_c,
 			StorageClient:   s3_c,
 		})
 
