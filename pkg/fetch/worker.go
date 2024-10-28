@@ -99,9 +99,7 @@ func (crw *FetchRequestWorker) Work(
 	}
 
 	crw.EnqueueClient.Insert(extract.ExtractRequest{
-		Host: job.Args.Host,
-		Path: job.Args.Path,
-		Key:  job_to_s3_key(job),
+		Key: job_to_s3_key(job),
 	})
 
 	return nil

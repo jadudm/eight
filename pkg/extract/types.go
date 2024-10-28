@@ -8,9 +8,7 @@ import (
 )
 
 type ExtractRequest struct {
-	Host string `json:"host"`
-	Path string `json:"path"`
-	Key  string `json:"key"`
+	Key string `json:"key"`
 }
 
 func NewExtractRequest() ExtractRequest {

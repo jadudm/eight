@@ -7,26 +7,15 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
+	"search.eight/internal/api"
 	"search.eight/pkg/extract"
 )
 
 var EXTRACT_API_VERSION = "1.0.0"
 
-type StatsInput struct{}
-type StatsResponse struct {
-	Stats map[string]int64
-}
-
-func StatsHandler(ctx context.Context, input *StatsInput) (*StatsResponse, error) {
-	// Does nothing if the stats are already initialized.
-	extract.NewExtractStats()
-	s := extract.ES.GetAll()
-	return &StatsResponse{Stats: s}, nil
-}
-
 type ExtractRequestInput struct {
 	Body struct {
-		Host string `json:"host" maxLength:"500" doc:"Host of resource"`
+		Key string `json:"key" maxLength:"2000" doc:"Key of object in S3"`
 	}
 }
 
@@ -35,7 +24,7 @@ type RequestReturn func(ctx context.Context, input *ExtractRequestInput) (*struc
 func ExtractRequestHandler(ch chan *extract.ExtractRequest) RequestReturn {
 	return func(ctx context.Context, input *ExtractRequestInput) (*struct{}, error) {
 		er := extract.NewExtractRequest()
-		er.Host = input.Body.Host
+		er.Key = input.Body.Key
 		ch <- &er
 		return nil, nil
 	}
@@ -43,10 +32,10 @@ func ExtractRequestHandler(ch chan *extract.ExtractRequest) RequestReturn {
 
 func ExtractApi(router *chi.Mux, ch chan *extract.ExtractRequest) *chi.Mux {
 	// Will this layer on top of the router I pass in?
-	api := humachi.New(router, huma.DefaultConfig("Extract API", EXTRACT_API_VERSION))
+	huma_api := humachi.New(router, huma.DefaultConfig("Extract API", EXTRACT_API_VERSION))
 
 	// Register GET /meminfo
-	huma.Register(api, huma.Operation{
+	huma.Register(huma_api, huma.Operation{
 		OperationID:   "put-extract-request",
 		Method:        http.MethodPut,
 		Path:          "/extract",
@@ -57,7 +46,7 @@ func ExtractApi(router *chi.Mux, ch chan *extract.ExtractRequest) *chi.Mux {
 	}, ExtractRequestHandler(ch))
 
 	// Register GET /stats
-	huma.Register(api, huma.Operation{
+	huma.Register(huma_api, huma.Operation{
 		OperationID:   "get-stats-request",
 		Method:        http.MethodGet,
 		Path:          "/stats",
@@ -65,7 +54,7 @@ func ExtractApi(router *chi.Mux, ch chan *extract.ExtractRequest) *chi.Mux {
 		Description:   "Request stats about this app",
 		Tags:          []string{"stats"},
 		DefaultStatus: http.StatusAccepted,
-	}, StatsHandler)
+	}, api.StatsHandler("extract"))
 
 	return router
 }
