@@ -49,12 +49,6 @@ func (obj *S3) Store(key string, value map[string]string) error {
 	}
 	defer client.Close()
 
-	if obj.Options.Codec == encoding.JSON {
-		key = key + ".json"
-	} else if obj.Options.Codec == encoding.Gob {
-		key = key + ".gob"
-	}
-
 	err = client.Set(key, value)
 
 	if err != nil {

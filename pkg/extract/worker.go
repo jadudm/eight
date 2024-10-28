@@ -66,38 +66,44 @@ func (e *Extractor) ExtractPdf() {
 			new["path"] = new["path"] + fmt.Sprintf("?page=%d", page_no+1)
 			e.Storage.Store(pdf_page_path(e.Job, new["path"]), new)
 			page.Close()
+			ES.Increment("pages_processed")
 		}
 	}
+	ES.Increment("documents_processed")
 	doc.Close()
 }
 
 func pdf_page_path(job *ExtractRequestJob, path string) string {
 	sha1 := sha1.Sum([]byte(job.Args.Host + path))
-	return fmt.Sprintf("%s/%x", job.Args.Host, sha1)
+	return fmt.Sprintf("%s/%x.json", job.Args.Host, sha1)
 }
 
 func (erw *ExtractRequestWorker) Work(
 	ctx context.Context,
 	job *ExtractRequestJob,
 ) error {
-	log.Println("EXTRACT", job)
+	log.Println("EXTRACT", job.Args.Host, job.Args.Path, job.Args.Key)
+	// Always safe to check the stats are ready.
+	NewExtractStats()
 
-	objects, err := erw.FetchStorage.List(job.Args.Host)
+	// FIXME: Need a way to distinguish between  processing an entire
+	// host domain and processing a single page?
+	// objects, err := erw.FetchStorage.List(job.Args.Host)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// log.Println("Found", len(objects), "objects")
+
+	//for _, o := range objects { // use *o.Key as the path
+	json_object, err := erw.FetchStorage.Get(job.Args.Key)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Println("Found", len(objects), "objects")
-
-	for _, o := range objects {
-		json_object, err := erw.FetchStorage.Get(*o.Key)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println(json_object["path"], json_object["content-type"])
-		e := NewExtractor(erw.ExtractStorage, json_object, job)
-		e.Extract()
-	}
+	log.Println(json_object["path"], json_object["content-type"])
+	e := NewExtractor(erw.ExtractStorage, json_object, job)
+	e.Extract()
+	log.Println("EXTRACT DONE", job.Args.Key)
+	// }
 
 	return nil
 }

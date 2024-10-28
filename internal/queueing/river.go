@@ -97,13 +97,13 @@ func WorkingClient[T river.JobArgs, U river.Worker[T]](r *River, job T, worker r
 	rc, err := river.NewClient(rpgxv5.New(r.Pool), &river.Config{
 		Logger: r.Logger,
 		Queues: map[string]river.QueueConfig{
-			job.Kind(): {MaxWorkers: 1000},
+			job.Kind(): {MaxWorkers: 10},
 		},
 		Workers: workers,
 		// Explore these parameters. The rescue lets us pick up jobs
 		// that were part-way done (say, in case of a crash).
-		// FetchCooldown:        time.Duration(3 * time.Second),
-		// FetchPollInterval:    time.Duration(5 * time.Second),
+		FetchCooldown:        time.Duration(1 * time.Second),
+		FetchPollInterval:    time.Duration(2 * time.Second),
 		JobTimeout:           time.Duration(10 * time.Second),
 		RescueStuckJobsAfter: time.Duration(30 * time.Second),
 	})

@@ -20,7 +20,7 @@ func job_to_string(job *FetchRequestJob) string {
 
 func job_to_s3_key(job *FetchRequestJob) string {
 	sha1 := sha1.Sum([]byte(job.Args.Host + job.Args.Path))
-	return fmt.Sprintf("%s/%x", job.Args.Host, sha1)
+	return fmt.Sprintf("%s/%x.json", job.Args.Host, sha1)
 }
 
 func fetch_page_content(job *FetchRequestJob) map[string]string {
@@ -100,6 +100,8 @@ func (crw *FetchRequestWorker) Work(
 
 	crw.EnqueueClient.Insert(extract.ExtractRequest{
 		Host: job.Args.Host,
+		Path: job.Args.Path,
+		Key:  job_to_s3_key(job),
 	})
 
 	return nil
