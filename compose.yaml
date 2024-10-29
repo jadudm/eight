@@ -63,6 +63,37 @@ services:
       ENV: "DOCKER"
 
   #-----------------------------------------------------
+  # pack
+  #-----------------------------------------------------
+  pack:
+    container_name: pack
+    image: eight/dev
+    build: 
+      context: .
+      dockerfile: ./cmd/pack/Dockerfile
+    entrypoint: /home/vcap/app/cmd/pack/run-fast.sh
+    volumes:
+      - type: bind
+        source: .
+        target: /app
+    ports:
+      - 10002:8888
+    # https://docs.docker.com/compose/how-tos/startup-order/
+    depends_on:
+      minio:
+        condition: service_healthy
+      queue-db:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail http://pack:8888/heartbeat || exit 1
+      interval: 60s
+      timeout: 180s
+      retries: 3
+      start_period: 60s
+    environment:
+      ENV: "DOCKER"
+
+  #-----------------------------------------------------
   # river queue watcher
   #-----------------------------------------------------
   ui:
@@ -71,6 +102,7 @@ services:
       - 11111:8080
     environment:
       DATABASE_URL: postgresql://postgres@queue-db:5432/postgres
+      RIVER_LOG_LEVEL: warn
     depends_on:
       queue-db:
         condition: service_healthy

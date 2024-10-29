@@ -10,6 +10,15 @@ import (
 	"search.eight/pkg/pack"
 )
 
+// For using _modernc.org
+// type sqliteDriver struct {
+// 	*sqlite.Driver
+// }
+
+// func init() {
+// 	sql.Register("sqlite3", sqliteDriver{Driver: &sqlite.Driver{}})
+// }
+
 func main() {
 	env.InitGlobalEnv()
 

@@ -76,7 +76,7 @@ func (e *Extractor) ExtractPdf(erw *ExtractRequestWorker) {
 			new["pdf_page_number"] = fmt.Sprintf("%d", page_no+1)
 			e.Storage.Store(extracted_key, new)
 			page.Close()
-			e.Stats.Increment("pages_processed")
+			e.Stats.Increment("page_count")
 
 			// Queue the next step
 			erw.EnqueueClient.Insert(pack.PackRequest{
@@ -84,7 +84,7 @@ func (e *Extractor) ExtractPdf(erw *ExtractRequestWorker) {
 			})
 		}
 	}
-	e.Stats.Increment("documents_processed")
+	e.Stats.Increment("document_count")
 	doc.Close()
 }
 

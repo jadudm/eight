@@ -29,9 +29,9 @@ func (er PackRequest) InsertOpts() river.InsertOpts {
 type PackRequestJob = river.Job[PackRequest]
 
 type PackRequestWorker struct {
-	FetchStorage  procs.Storage
-	PackStorage   procs.Storage
-	EnqueueClient *queueing.River
+	ExtractStorage procs.Storage
+	PackStorage    procs.Storage
+	EnqueueClient  *queueing.River
 	river.WorkerDefaults[PackRequest]
 }
 

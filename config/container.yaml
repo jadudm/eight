@@ -12,6 +12,9 @@ VCAP_SERVICES:
     - name: "extract"
       credentials:
         port: 8888
+    - name: "pack"
+      credentials:
+        port: 8888
   s3:
     #################################
     # fetch bucket

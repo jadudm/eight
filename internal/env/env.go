@@ -51,14 +51,14 @@ type env struct {
 
 var Env *env
 
-var local_envs = []string{"DOCKER", "GH_ACTIONS"}
+var container_envs = []string{"DOCKER", "GH_ACTIONS"}
 var cf_envs = []string{"PREVIEW", "DEV", "STAGING", "PROD"}
 
 func InitGlobalEnv() {
 	Env = &env{}
 
-	if IsLocalEnv() {
-		viper.SetConfigName("local")
+	if IsContainerEnv() {
+		viper.SetConfigName("container")
 	}
 	if IsCloudEnv() {
 		viper.SetConfigName("cfenv")
@@ -96,7 +96,7 @@ func (e *env) GetServiceByName(category string, name string) (*Service, error) {
 // postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]
 func (e *env) GetDatabaseUrl(name string) (string, error) {
 	params := ""
-	if IsLocalEnv() {
+	if IsContainerEnv() {
 		params = "sslmode=disable"
 	}
 	for _, db := range e.Databases {
@@ -122,8 +122,8 @@ func (e *env) GetBucket(name string) (Bucket, error) {
 	return Bucket{}, fmt.Errorf("no bucket with name %s", name)
 }
 
-func IsLocalEnv() bool {
-	return slices.Contains(local_envs, os.Getenv("ENV"))
+func IsContainerEnv() bool {
+	return slices.Contains(container_envs, os.Getenv("ENV"))
 }
 
 func IsCloudEnv() bool {

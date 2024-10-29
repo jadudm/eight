@@ -10,22 +10,22 @@ import (
 
 func Pack(ch_req chan *PackRequest) {
 	// Get the K/V stores ready
-	b, _ := env.Env.GetBucket("fetch")
-	fb, err := env.Env.GetBucket(b.Name)
+	b, _ := env.Env.GetBucket("extract")
+	extract_b, err := env.Env.GetBucket(b.Name)
 	if err != nil {
 		log.Println("cannot get fetch bucket")
 		log.Fatal(err)
 	}
 
 	b, _ = env.Env.GetBucket("pack")
-	eb, err := env.Env.GetBucket(b.Name)
+	pack_b, err := env.Env.GetBucket(b.Name)
 	if err != nil {
 		log.Println("cannot get pack bucket")
 		log.Fatal(err)
 	}
 
-	s3_fc := procs.NewKVS3(fb)
-	s3_ec := procs.NewKVS3(eb)
+	client_s3_extract := procs.NewKVS3(extract_b)
+	client_s3_pack := procs.NewKVS3(pack_b)
 
 	// This lets us queue new jobs.
 	e_c := queueing.NewRiver()
@@ -35,9 +35,9 @@ func Pack(ch_req chan *PackRequest) {
 	work_c = queueing.WorkingClient[PackRequest, PackWorker](
 		work_c, PackRequest{},
 		&PackRequestWorker{
-			FetchStorage:  s3_fc,
-			PackStorage:   s3_ec,
-			EnqueueClient: e_c,
+			ExtractStorage: client_s3_extract,
+			PackStorage:    client_s3_pack,
+			EnqueueClient:  e_c,
 		})
 
 	if err := work_c.Client.Start(work_c.Context); err != nil {
