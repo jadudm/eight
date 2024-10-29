@@ -80,9 +80,6 @@ func NewPacker(ctx context.Context, prw *PackRequestWorker, job *PackRequestJob)
 			return new_packer
 		}
 	}
-
-	log.Fatal("Could not create a packer. Should never get here.")
-	return nil
 }
 
 // func (p *Packer) SequentialWrite(in chan schemas.CreateSiteEntryParams, out chan schemas.SiteIndex) {
