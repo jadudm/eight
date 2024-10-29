@@ -29,7 +29,7 @@ var lock = &sync.Mutex{}
 
 var singleton_packers = sync.Map{}
 
-func NewPacker(ctx context.Context, prw *PackRequestWorker, job *PackRequestJob) *Packer {
+func NewPacker(prw *PackRequestWorker, job *PackRequestJob) *Packer {
 
 	json_object, err := prw.ExtractStorage.Get(job.Args.Key)
 	if err != nil {
@@ -40,16 +40,16 @@ func NewPacker(ctx context.Context, prw *PackRequestWorker, job *PackRequestJob)
 
 	// Create *most* of the packer
 	new_packer := &Packer{
-		Job:           job,
-		JSON:          json_object,
-		PRW:           prw,
-		WorkerContext: ctx,
+		Job:  job,
+		JSON: json_object,
+		PRW:  prw,
 	}
 
 	// Now, add the DB connection under a singleton lock pattern.
 	// We only want one DB connection for all of the workers for this domain.
 	// We only want to hold the *database connection* constant, not everything else.
 	// Otherwise, we get the same worker over-and-over.
+	// https://refactoring.guru/design-patterns/singleton/go/example
 	if packer, ok := singleton_packers.Load(host); ok {
 		log.Println("Returning existing packer for", host)
 		new_packer.SearchDb = packer.(*Packer).SearchDb
@@ -82,21 +82,6 @@ func NewPacker(ctx context.Context, prw *PackRequestWorker, job *PackRequestJob)
 	}
 }
 
-// func (p *Packer) SequentialWrite(in chan schemas.CreateSiteEntryParams, out chan schemas.SiteIndex) {
-// 	for {
-// 		params := <-in
-// 		ndx, err := p.SearchDb.Queries.CreateSiteEntry(p.SearchDb.Context, params)
-
-// 		if err != nil {
-// 			log.Println("Insert into site entry table failed")
-// 			log.Fatal(err)
-// 		}
-
-// 		out <- ndx
-// 	}
-
-// }
-
 func (p *Packer) Pack() {
 	stats := api.NewBaseStats("pack")
 	host := p.JSON["host"]
@@ -114,38 +99,22 @@ func (p *Packer) Pack() {
 		log.Println("Insert into site entry table failed")
 		log.Fatal(err)
 	}
-	log.Printf("CreateSiteEntry %s %v\n", p.JSON["key"], ndx)
+	log.Printf("CreateSiteEntry %s %v\n", p.JSON["key"], ndx.Path)
 
 	stats.Increment("document_count")
 	log.Println(p.JSON["path"], p.JSON["content-type"])
 }
-
-// var ch_EP chan schemas.CreateSiteEntryParams
-// var ch_SI chan schemas.SiteIndex
-// var one_writer = 0
 
 func (erw *PackRequestWorker) Work(
 	ctx context.Context,
 	job *PackRequestJob,
 ) error {
 	log.Println("PACK", job.Args.Key)
-	// if ch_EP == nil {
-	// 	ch_EP = make(chan schemas.CreateSiteEntryParams)
-
-	// }
-	// if ch_SI == nil {
-	// 	ch_SI = make(chan schemas.SiteIndex)
-	// }
 
 	// Always safe to check the stats are ready.
 	api.NewBaseStats("pack")
 
-	p := NewPacker(ctx, erw, job)
-
-	// if one_writer == 0 {
-	// 	one_writer = 1
-	// 	go p.SequentialWrite(ch_EP, ch_SI)
-	// }
+	p := NewPacker(erw, job)
 
 	p.Pack()
 

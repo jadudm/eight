@@ -1,5 +1,5 @@
 cleanup:
-	cd cmd/pack ; rm -f *.sqlite ; rm -f *.sqlite-journal
+	cd cmd/pack ; rm -f *.sqlite ; rm -f *.sqlite-*
 
 generate:
 	cd internal/sqlite ; sqlc generate || exit 1
