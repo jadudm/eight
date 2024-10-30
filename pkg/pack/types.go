@@ -32,6 +32,9 @@ type PackRequestWorker struct {
 	ExtractStorage procs.Storage
 	PackStorage    procs.Storage
 	EnqueueClient  *queueing.River
+	ChanPackages   chan Package
+	ChanFinalize   chan string
+
 	river.WorkerDefaults[PackRequest]
 }
 

@@ -102,7 +102,8 @@ services:
       - 11111:8080
     environment:
       DATABASE_URL: postgresql://postgres@queue-db:5432/postgres
-      RIVER_LOG_LEVEL: warn
+      RIVER_LOG_LEVEL: ERROR
+      RIVER_DEBUG: 0
     depends_on:
       queue-db:
         condition: service_healthy
