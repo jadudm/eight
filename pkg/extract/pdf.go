@@ -38,7 +38,7 @@ func (e *Extractor) ExtractPdf(erw *ExtractRequestWorker) {
 			maps.Copy(new, e.Raw)
 			new["content"] = util.RemoveStopwords(page.Text())
 
-			new["path"] = new["path"] + fmt.Sprintf("?page=%d", page_no+1)
+			new["path"] = new["path"] + fmt.Sprintf("#page=%d", page_no+1)
 			new["pdf_page_number"] = fmt.Sprintf("%d", page_no+1)
 			e.Storage.Store(extracted_key, new)
 			page.Close()

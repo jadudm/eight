@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/base64"
 	"log"
+	"maps"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"search.eight/internal/util"
+	"search.eight/pkg/pack"
 )
 
 func scrape_sel(sel *goquery.Selection) string {
@@ -27,7 +29,7 @@ func scrape_sel(sel *goquery.Selection) string {
 	return content
 }
 
-func (e *Extractor) ExtractHtml(erw *ExtractRequestWorker) string {
+func (e *Extractor) ExtractHtml(erw *ExtractRequestWorker) {
 	raw := e.Raw["raw"]
 	decoded, err := base64.URLEncoding.DecodeString(raw)
 	if err != nil {
@@ -36,6 +38,9 @@ func (e *Extractor) ExtractHtml(erw *ExtractRequestWorker) string {
 	// Decoded contains a byte array of the raw HTML
 	reader := bytes.NewReader(decoded)
 	content := ""
+
+	// Delete the raw
+	delete(e.Raw, "raw")
 
 	doc, err := goquery.NewDocumentFromReader(reader)
 	if err != nil {
@@ -52,6 +57,16 @@ func (e *Extractor) ExtractHtml(erw *ExtractRequestWorker) string {
 		content += scrape_sel(sel)
 	})
 
-	return content
+	// Store everything
+	extracted_key := content_key(e.Raw["host"], e.Job.Args.Key, -1)
+	new := make(map[string]string, 0)
+	maps.Copy(new, e.Raw)
+	new["content"] = util.RemoveStopwords(content)
+	e.Storage.Store(extracted_key, new)
+
+	// Queue the next step
+	erw.EnqueueClient.InsertTx(pack.PackRequest{
+		Key: extracted_key,
+	})
 
 }
