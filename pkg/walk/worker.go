@@ -10,6 +10,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"search.eight/internal/api"
+	"search.eight/internal/util"
 	"search.eight/pkg/fetch"
 )
 
@@ -23,7 +24,8 @@ type Walker struct {
 type WalkionFunction func(map[string]string)
 
 func (e *Walker) Walk() {
-	switch e.JSON["content-type"] {
+	cleaned_mime_type := util.CleanedMimeType(e.JSON["content-type"])
+	switch cleaned_mime_type {
 	case "text/html":
 		e.WalkHTML()
 	case "application/pdf":

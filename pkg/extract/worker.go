@@ -46,7 +46,8 @@ func content_key(host string, old_key string, page_number int) string {
 }
 
 func (e *Extractor) Extract(erw *ExtractRequestWorker) {
-	switch e.Raw["content-type"] {
+	cleaned_mime_type := util.CleanedMimeType(e.Raw["content-type"])
+	switch cleaned_mime_type {
 	case "text/html":
 		// This inserts into a named queue, not the queue defined by the struct.
 		erw.EnqueueClient.InsertTx(util.GenericRequest{

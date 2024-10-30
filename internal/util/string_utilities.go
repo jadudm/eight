@@ -18,6 +18,23 @@ func AtoZOnly(s string) string {
 	return result.String()
 }
 
+var mime_types = []string{
+	"text/html",
+	"text/plain",
+	"application/pdf",
+	"application/x-sqlite3",
+}
+
+func CleanedMimeType(mime string) string {
+	for _, m := range mime_types {
+		if strings.Contains(mime, m) {
+			return m
+		}
+	}
+	// The unknown mime type
+	return "application/octet-stream"
+}
+
 func GetMimeType(path string) string {
 	m := map[string]string{
 		"json":    "application/json",
