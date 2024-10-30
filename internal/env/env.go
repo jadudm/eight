@@ -9,6 +9,22 @@ import (
 	"github.com/spf13/viper"
 )
 
+var Env *env
+
+type env struct {
+	AppEnv       string               `mapstructure:"APPENV"`
+	Home         string               `mapstructure:"HOME"`
+	MemoryLimit  string               `mapstructure:"MEMORY_LIMIT"`
+	Pwd          string               `mapstructure:"PWD"`
+	TmpDir       string               `mapstructure:"TMPDIR"`
+	User         string               `mapstructure:"USER"`
+	VcapServices map[string][]Service `mapstructure:"VCAP_SERVICES"`
+
+	UserServices []Service
+	Buckets      []Bucket
+	Databases    []Database
+}
+
 type Credentials struct {
 	// Common
 	Uri  string `mapstructure:"uri"`
@@ -27,29 +43,35 @@ type Credentials struct {
 	Username string `mapstructure:"username"`
 }
 
+type Parameters map[string]interface{}
+
 type Service struct {
 	Name        string      `mapstructure:"name"`
 	Credentials Credentials `mapstructure:"credentials"`
+	Parameters  Parameters  `mapstructure:"parameters"`
+}
+
+func (s *Service) GetParamInt64(key string) int64 {
+	if param_val, ok := s.Parameters[key]; ok {
+		return int64(param_val.(int))
+	} else {
+		log.Fatalf("ENV no int param found for %s", key)
+		return 0
+	}
+}
+
+func (s *Service) GetParamString(key string) string {
+	if param_val, ok := s.Parameters[key]; ok {
+		return param_val.(string)
+	} else {
+		log.Fatalf("ENV no string param found for %s", key)
+		return ""
+	}
 }
 
 type Database = Service
 
 type Bucket = Service
-
-type env struct {
-	AppEnv       string               `mapstructure:"APPENV"`
-	Home         string               `mapstructure:"HOME"`
-	MemoryLimit  string               `mapstructure:"MEMORY_LIMIT"`
-	Pwd          string               `mapstructure:"PWD"`
-	TmpDir       string               `mapstructure:"TMPDIR"`
-	User         string               `mapstructure:"USER"`
-	VcapServices map[string][]Service `mapstructure:"VCAP_SERVICES"`
-
-	Buckets   []Bucket
-	Databases []Database
-}
-
-var Env *env
 
 var container_envs = []string{"DOCKER", "GH_ACTIONS"}
 var cf_envs = []string{"PREVIEW", "DEV", "STAGING", "PROD"}
@@ -69,18 +91,18 @@ func InitGlobalEnv() {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatal("can't find config files: ", err)
+		log.Fatal("ENV can't find config files: ", err)
 	}
 
 	err = viper.Unmarshal(&Env)
 	if err != nil {
-		log.Fatal("environment can't be loaded: ", err)
+		log.Fatal("ENV environment can't be loaded: ", err)
 	}
 
 	// Configure the buckets and databases
 	Env.Buckets = Env.VcapServices["s3"]
 	Env.Databases = Env.VcapServices["aws-rds"]
-
+	Env.UserServices = Env.VcapServices["user-provided"]
 }
 
 func (e *env) GetServiceByName(category string, name string) (*Service, error) {
@@ -89,7 +111,7 @@ func (e *env) GetServiceByName(category string, name string) (*Service, error) {
 			return &s, nil
 		}
 	}
-	return nil, fmt.Errorf("no service in category %s found with name %s", category, name)
+	return nil, fmt.Errorf("ENV no service in category %s found with name %s", category, name)
 }
 
 // https://stackoverflow.com/questions/3582552/what-is-the-format-for-the-postgresql-connection-string-url
@@ -110,7 +132,7 @@ func (e *env) GetDatabaseUrl(name string) (string, error) {
 			), nil
 		}
 	}
-	return "", fmt.Errorf("no db found with name %s", name)
+	return "", fmt.Errorf("ENV no db found with name %s", name)
 }
 
 func (e *env) GetBucket(name string) (Bucket, error) {
@@ -119,7 +141,16 @@ func (e *env) GetBucket(name string) (Bucket, error) {
 			return b, nil
 		}
 	}
-	return Bucket{}, fmt.Errorf("no bucket with name %s", name)
+	return Bucket{}, fmt.Errorf("ENV no bucket with name %s", name)
+}
+
+func (e *env) GetService(name string) (Service, error) {
+	for _, s := range e.UserServices {
+		if s.Name == name {
+			return s, nil
+		}
+	}
+	return Service{}, fmt.Errorf("ENV no service with name %s", name)
 }
 
 func IsContainerEnv() bool {

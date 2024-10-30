@@ -55,7 +55,7 @@ func Fetch(ch_req chan *FetchRequest) {
 	// Insert them into the queue.
 	for {
 		job := <-ch_req
-		work_c.Insert(job)
+		work_c.InsertTx(job)
 	}
 
 }

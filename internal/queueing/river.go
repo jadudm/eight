@@ -114,7 +114,7 @@ func WorkingClient[T river.JobArgs, U river.Worker[T]](r *River, job T, worker r
 	return r
 }
 
-func (r *River) Insert(job river.JobArgs) {
+func (r *River) InsertTx(job river.JobArgs) {
 	tx, err := r.Pool.Begin(r.Context)
 	if err != nil {
 		log.Println(err)
@@ -127,4 +127,13 @@ func (r *River) Insert(job river.JobArgs) {
 		log.Fatal("Could not insert with transaction")
 	}
 	tx.Commit(r.Context)
+}
+
+func (r *River) Insert(job river.JobArgs, queuename string) {
+	// _, err = r.Client.InsertTx(r.Context, tx, job, &river.InsertOpts{Queue: r.QueueName})
+	_, err := r.Client.Insert(r.Context, job, &river.InsertOpts{Queue: queuename})
+	if err != nil {
+		log.Println(err)
+		log.Fatal("Could not insert with transaction")
+	}
 }

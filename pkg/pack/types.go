@@ -4,6 +4,7 @@ import (
 	"github.com/riverqueue/river"
 	env "search.eight/internal/env"
 	"search.eight/internal/queueing"
+	"search.eight/internal/sqlite"
 	"search.eight/pkg/procs"
 )
 
@@ -33,7 +34,7 @@ type PackRequestWorker struct {
 	PackStorage    procs.Storage
 	EnqueueClient  *queueing.River
 	ChanPackages   chan Package
-	ChanFinalize   chan string
+	ChanFinalize   chan *sqlite.PackTable
 
 	river.WorkerDefaults[PackRequest]
 }

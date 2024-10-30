@@ -1,6 +1,9 @@
 package util
 
-import "strings"
+import (
+	"bytes"
+	"strings"
+)
 
 func AtoZOnly(s string) string {
 	var result strings.Builder
@@ -13,4 +16,23 @@ func AtoZOnly(s string) string {
 		}
 	}
 	return result.String()
+}
+
+func GetMimeType(path string) string {
+	m := map[string]string{
+		"json":    "application/json",
+		"txt":     "text/plain",
+		"md":      "text/plain",
+		"pdf":     "application/pdf",
+		"sqlite":  "application/x-sqlite3",
+		"sqlite3": "application/x-sqlite3",
+		// https://www.iana.org/assignments/media-types/application/zstd
+		"zstd": "application/zstd",
+	}
+	for k, v := range m {
+		if bytes.HasSuffix([]byte(path), []byte(k)) {
+			return v
+		}
+	}
+	return m["json"]
 }

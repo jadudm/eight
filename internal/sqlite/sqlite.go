@@ -16,21 +16,18 @@ var ddl string
 
 // FIXME: This may become an interface?
 type PackTable struct {
-	Context context.Context
-	DB      *sql.DB
-	Queries *search_db.Queries
+	Filename string
+	Context  context.Context
+	DB       *sql.DB
+	Queries  *search_db.Queries
 }
 
 func CreatePackTable(db_filename string) (*PackTable, error) {
 
 	pt := PackTable{}
+	pt.Filename = db_filename
 
 	ctx := context.Background()
-
-	// Always add an .sqlite extension to filenames.
-	if has_ext := strings.HasSuffix("sqlite", db_filename); !has_ext {
-		db_filename = db_filename + ".sqlite"
-	}
 
 	// FIXME: Any params to the DB?
 	db, err := sql.Open("sqlite3", db_filename)
@@ -58,4 +55,18 @@ func CreatePackTable(db_filename string) (*PackTable, error) {
 	pt.Queries = queries
 
 	return &pt, nil
+}
+
+func (pt *PackTable) PrepForNetwork() {
+	// https://turso.tech/blog/something-you-probably-want-to-know-about-if-youre-using-sqlite-in-golang-72547ad625f1
+	pt.DB.ExecContext(pt.Context, "PRAGMA wal_checkpoint(TRUNCATE)")
+	pt.DB.ExecContext(pt.Context, "VACUUM")
+}
+
+func SqliteFilename(db_filename string) string {
+	// Always add an .sqlite extension to filenames.
+	if has_ext := strings.HasSuffix("sqlite", db_filename); !has_ext {
+		db_filename = db_filename + ".sqlite"
+	}
+	return db_filename
 }

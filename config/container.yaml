@@ -9,6 +9,12 @@ VCAP_SERVICES:
     - name: "fetch"
       credentials:
         port: 8888
+    - name: "walk"
+      credentials:
+        port: 8888
+      parameters:
+        cache-ttl-minutes: 5
+        cache-ttl-seconds: 0
     - name: "extract"
       credentials:
         port: 8888
@@ -36,8 +42,8 @@ VCAP_SERVICES:
         uri: "http://minio:9000"
         port: 9000
         insecure_skip_verify: false
-        access_key_id: "nutnutnut"
-        secret_access_key: "nutnutnut"
+        access_key_id: "experimenteight"
+        secret_access_key: "experimenteight"
         region: "us-east-1"
         bucket: "fetch"
         endpoint: "http://minio:9000"
@@ -64,8 +70,8 @@ VCAP_SERVICES:
         uri: "http://minio:9000"
         port: 9000
         insecure_skip_verify: false
-        access_key_id: "nutnutnut"
-        secret_access_key: "nutnutnut"
+        access_key_id: "experimenteight"
+        secret_access_key: "experimenteight"
         region: "us-east-1"
         bucket: "extract"
         endpoint: "http://minio:9000"
@@ -92,10 +98,38 @@ VCAP_SERVICES:
         uri: "http://minio:9000"
         port: 9000
         insecure_skip_verify: false
-        access_key_id: "nutnutnut"
-        secret_access_key: "nutnutnut"
+        access_key_id: "experimenteight"
+        secret_access_key: "experimenteight"
         region: "us-east-1"
         bucket: "pack"
+        endpoint: "http://minio:9000"
+        fips_endpoint: "http://minio:9000"
+        additional_buckets: []
+      syslog_drain_url: "https://ALPHA.drain.url"
+      volume_mounts: ["no_mounts"]
+    #################################
+    # serve bucket
+    #################################
+    - label: "s3"
+      provider: "minio-local"
+      plan: "basic"
+      name: "serve"
+      tags:
+        - "AWS"
+        - "S3"
+        - "object-storage"
+      instance_guid: "d77a8446-2285-4489-8f92-5f0e32e272ab"
+      binding_guid: "e686ea8d-4bf4-4c8e-8a43-d69256364bca"
+      binding_name: null
+      instance_name: "serve-storage"
+      credentials:
+        uri: "http://minio:9000"
+        port: 9000
+        insecure_skip_verify: false
+        access_key_id: "experimenteight"
+        secret_access_key: "experimenteight"
+        region: "us-east-1"
+        bucket: "serve"
         endpoint: "http://minio:9000"
         fips_endpoint: "http://minio:9000"
         additional_buckets: []

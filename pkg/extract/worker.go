@@ -3,14 +3,11 @@ package extract
 import (
 	"context"
 	"crypto/sha1"
-	"encoding/base64"
 	"fmt"
 	"log"
-	"maps"
 
-	"github.com/johbar/go-poppler"
 	"search.eight/internal/api"
-	"search.eight/pkg/pack"
+	"search.eight/internal/util"
 	"search.eight/pkg/procs"
 )
 
@@ -32,60 +29,33 @@ func NewExtractor(s procs.Storage, raw map[string]string, job *ExtractRequestJob
 	}
 }
 
+// func _content_key(host string, old_key string, page_number int) string {
+// 	sha1 := sha1.Sum([]byte(fmt.Sprintf("%s/%d", old_key, page_number)))
+// 	return fmt.Sprintf("%s/%x.json", host, sha1)
+// }
+
+func content_key(host string, old_key string, page_number int) string {
+	if page_number == -1 {
+		// sha1 := sha1.Sum([]byte(fmt.Sprintf("%s", old_key)))
+		//return fmt.Sprintf("%s/%x.json", host, sha1)
+		return old_key
+	} else {
+		sha1 := sha1.Sum([]byte(fmt.Sprintf("%s/%d", old_key, page_number)))
+		return fmt.Sprintf("%s/%x.json", host, sha1)
+	}
+}
+
 func (e *Extractor) Extract(erw *ExtractRequestWorker) {
 	switch e.Raw["content-type"] {
 	case "text/html":
-		log.Println("HTML")
+		// This inserts into a named queue, not the queue defined by the struct.
+		erw.EnqueueClient.InsertTx(util.GenericRequest{
+			Key:       content_key(e.Raw["host"], e.Job.Args.Key, -1),
+			QueueName: "walk"})
+		e.ExtractHtml(erw)
 	case "application/pdf":
 		e.ExtractPdf(erw)
 	}
-}
-
-func content_key(host string, old_key string, page_number int) string {
-	sha1 := sha1.Sum([]byte(fmt.Sprintf("%s/%d", old_key, page_number)))
-	return fmt.Sprintf("%s/%x.json", host, sha1)
-}
-
-func (e *Extractor) ExtractPdf(erw *ExtractRequestWorker) {
-	// func process_pdf_bytes(db string, url string, b []byte) {
-	// We need a byte array of the original file.
-	raw := e.Raw["raw"]
-
-	decoded, err := base64.URLEncoding.DecodeString(raw)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Delete the raw
-	delete(e.Raw, "raw")
-
-	doc, err := poppler.Load(decoded)
-
-	if err != nil {
-		fmt.Println("Failed to convert body to Document")
-	} else {
-		for page_no := 0; page_no < doc.GetNPages(); page_no++ {
-			extracted_key := content_key(e.Raw["host"], e.Job.Args.Key, page_no+1)
-			page := doc.GetPage(page_no)
-			new := make(map[string]string, 0)
-			// dst, src
-			maps.Copy(new, e.Raw)
-			new["content"] = page.Text()
-			new["path"] = new["path"] + fmt.Sprintf("?page=%d", page_no+1)
-			new["pdf_page_number"] = fmt.Sprintf("%d", page_no+1)
-			e.Storage.Store(extracted_key, new)
-			page.Close()
-			e.Stats.Increment("page_count")
-
-			// Queue the next step
-			erw.EnqueueClient.Insert(pack.PackRequest{
-				Key: extracted_key,
-			})
-		}
-	}
-	e.Stats.Increment("document_count")
-	doc.Close()
 }
 
 func (erw *ExtractRequestWorker) Work(

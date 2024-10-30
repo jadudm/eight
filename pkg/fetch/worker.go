@@ -98,7 +98,7 @@ func (crw *FetchRequestWorker) Work(
 		job_to_string(job): path_s3,
 	}
 
-	crw.EnqueueClient.Insert(extract.ExtractRequest{
+	crw.EnqueueClient.InsertTx(extract.ExtractRequest{
 		Key: job_to_s3_key(job),
 	})
 

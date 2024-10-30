@@ -3,12 +3,14 @@ module search.eight
 go 1.23.2
 
 require (
+	github.com/PuerkitoBio/goquery v1.10.0
 	github.com/aws/aws-sdk-go v1.49.16
 	github.com/aws/aws-sdk-go-v2 v1.32.2
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.41
 	github.com/danielgtaylor/huma/v2 v2.24.0
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.1.0
+	github.com/go-pkgz/expirable-cache/v3 v3.0.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/johbar/go-poppler v1.0.0
 	github.com/mattn/go-sqlite3 v1.14.24
@@ -26,6 +28,7 @@ require (
 )
 
 require (
+	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/aws/smithy-go v1.22.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -63,6 +66,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
 	golang.org/x/exp v0.0.0-20231108232855-2478ac86f678 // indirect
+	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.19.0 // indirect

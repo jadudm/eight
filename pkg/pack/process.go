@@ -15,7 +15,7 @@ import (
 // The PackWriter provides concurrency protection for the
 // SQLite databases. We can only write one package at a time.
 // This is because we have 10 workers.
-func PackWriter(chp <-chan Package, chf chan<- string) {
+func PackWriter(chp <-chan Package, chf chan<- *sqlite.PackTable) {
 	databases := make(map[string]*sqlite.PackTable)
 	contexts := make(map[string]context.Context)
 	stats := api.NewBaseStats("pack")
@@ -23,10 +23,10 @@ func PackWriter(chp <-chan Package, chf chan<- string) {
 	for {
 		pkg := <-chp
 		host := pkg.JSON["host"]
-		log.Println("PACKING", host, pkg.JSON["key"])
+		// log.Println("PACKING", host, pkg.JSON["key"])
 		// Only create the connection once.
 		if _, ok := databases[host]; !ok {
-			table, err := sqlite.CreatePackTable(host)
+			table, err := sqlite.CreatePackTable(sqlite.SqliteFilename(host))
 			if err != nil {
 				log.Println("Could not create pack table for", host)
 				log.Fatal(err)
@@ -35,54 +35,80 @@ func PackWriter(chp <-chan Package, chf chan<- string) {
 			contexts[host] = context.Background()
 		}
 
-		si, err := databases[host].Queries.CreateSiteEntry(contexts[host], pkg.Entry)
+		_, err := databases[host].Queries.CreateSiteEntry(contexts[host], pkg.Entry)
 
 		if err != nil {
 			log.Println("Insert into site entry table failed")
 			log.Fatal(err)
 		}
-		log.Printf("CreateSiteEntry %s %v\n", pkg.JSON["key"], si.Path)
+
+		//log.Printf("CreateSiteEntry %s %v\n", pkg.JSON["key"], si.Path)
 		stats.Increment("document_count")
-		chf <- pkg.JSON["host"]
+		chf <- databases[host]
 	}
 }
 
 // We get pings on domains as they go through
 // When the timer fires, we queue that domain to the finalize queue.
-func FinalizeTimer( /*a finalize client*/ in <-chan string) {
+func FinalizeTimer(in <-chan *sqlite.PackTable) {
 	//FIXME: This should be a config parameter
 	TIMEOUT_DURATION := time.Duration(10 * time.Second)
 
 	clocks := make(map[string]time.Time)
+	tables := make(map[string]*sqlite.PackTable)
 
+	// https://dev.to/milktea02/misunderstanding-go-timers-and-channels-1jal
+	log.Println("FINALIZE starting timer...")
 	timeout := time.NewTimer(TIMEOUT_DURATION)
 
 	for {
 		select {
-		case domain := <-in:
-			// When we get a domain, we should start a timer.
-			clocks[domain] = time.Now()
+		case pt := <-in:
+			// When we get a domain, we should indicate that we
+			// saw it just now.
+			clocks[pt.Filename] = time.Now()
+			tables[pt.Filename] = pt
 
 		case <-timeout.C:
 			// Every <timeout> seconds, we'll see if anyone has a clock that is greater,
 			// which will mean nothing has come through recently.
-			for domain, clock := range clocks {
+			for sqlite_filename, clock := range clocks {
 				if time.Since(clock) > TIMEOUT_DURATION {
 					//prw.EnqueueClient()
-					delete(clocks, domain)
-					log.Println("Enqueue", domain, "for finalize.")
+					// FIXME: Just send it to S3 for now.
+					// This is still a bit of an MVP.
+
+					b, err := env.Env.GetBucket("serve")
+					if err != nil {
+						log.Println("cannot get serve bucket")
+						log.Fatal(err)
+					}
+					kv := procs.NewKVS3(b)
+					log.Println("FINALIZE streaming", sqlite_filename)
+
+					tables[sqlite_filename].PrepForNetwork()
+
+					err = kv.StreamObject(sqlite_filename, sqlite_filename)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					//tables[sqlite_filename].DB.Close()
+
+					delete(clocks, sqlite_filename)
+					delete(tables, sqlite_filename)
+
 				}
 			}
 			timeout.Reset(TIMEOUT_DURATION)
 		}
-
 	}
 }
 
 func Pack(ch_req chan *PackRequest) {
 	// Spin up the helper processes
 	ch_packages := make(chan Package)
-	ch_finalize := make(chan string)
+	ch_finalize := make(chan *sqlite.PackTable)
 
 	// FIXME: we need a finalize client in here
 	go FinalizeTimer(ch_finalize)
@@ -129,7 +155,7 @@ func Pack(ch_req chan *PackRequest) {
 	// Insert them into the queue.
 	for {
 		job := <-ch_req
-		work_c.Insert(job)
+		work_c.InsertTx(job)
 	}
 
 }

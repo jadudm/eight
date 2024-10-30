@@ -50,7 +50,9 @@ The packer works off of one queue. This means we can end up with thousands of pa
 
 If we have 1000 pages from alice.gov, 10 from bob.gov, and 100 from clarice.gov, we end up taking a long time to get to clarice.
 
-A way to rework this would be to have per-host queues.
+A way to rework this would be to have per-host queues. This may be trickier than it sounds. It will require dynamically creating workers, and it may be that the structure of the queueing library makes that difficult.
+
+Essentially: SQLite *can* do better concurrency than I'm experiencing. It can be fixed in a way that is more performant.
 
 ### extract only queues new domains to pack
 

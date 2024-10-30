@@ -41,11 +41,6 @@ func (prw *PackRequestWorker) Work(
 		Text: JSON["content"],
 	}
 
-	log.Println("SENDING")
-	//prw.ChanPackages <- Package{JSON, entry_params}
 	ch.(chan Package) <- Package{JSON, entry_params}
-
-	log.Println("PACK DONE", job.Args.Key)
-
 	return nil
 }
