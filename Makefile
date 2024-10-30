@@ -9,3 +9,6 @@ build: generate
 
 run: generate cleanup
 	docker compose up
+
+cloc:
+	docker run --rm -v ${PWD}:/tmp aldanial/cloc --exclude-dir=static .

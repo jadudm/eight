@@ -60,11 +60,6 @@ There is a UI for monitoring the queues.
 
 This lets you watch the queues at [localhost:11111](http://localhost:11111) provided by [River](https://riverqueue.com/), a queueing library/system built on Postgres. 
 
-## star history
-
-I saw this on another project and thought it was cute. Here, it might be ironic.
-
-[![Star History Chart](https://api.star-history.com/svg?repos=jadudm/eight&type=Date)](https://star-history.com/#jadudm/eight&Date)
 
 ## by the numbers
 
@@ -72,15 +67,17 @@ I saw this on another project and thought it was cute. Here, it might be ironic.
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              24            244            104           1109
-Markdown                        11            167              0            246
+Go                              45            490            232           2218
+YAML                             4             14             49            363
+Markdown                        12            194              0            318
 JSON                             1              0              0            199
-YAML                             2              7             25            189
-Dockerfile                       3             14              6             40
-make                             3              5              0             16
-Python                           1              4              0             15
-Bourne Shell                     2              4              0             12
+Text                             1              0              0            127
+Dockerfile                       5             22             12             54
+make                             7             17              0             52
+Python                           2              8              0             44
+SQL                              2              8             10             25
+Bourne Shell                     4              8              0             24
 -------------------------------------------------------------------------------
-SUM:                            47            445            135           1826
+SUM:                            83            761            303           3424
 -------------------------------------------------------------------------------
 ```
