@@ -159,7 +159,7 @@ func (obj *S3) Get(key string) (map[string]string, error) {
 	if found {
 		return json_map, nil
 	} else {
-		return nil, fmt.Errorf("cannot get k/v for %s", key)
+		return nil, fmt.Errorf("cannot get k/v for %s on bucket %s", key, obj.Bucket.Name)
 	}
 }
 
@@ -180,6 +180,29 @@ func (obj *S3) PutObject(path []string, object []byte) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (obj *S3) GetObject(destination_filename string, key string) {
+	b := obj.Bucket
+	obj.CreateBucket()
+	sess := obj.s3_session
+
+	// 3) Create a new AWS S3 downloader
+	downloader := s3manager.NewDownloader(sess)
+
+	// 4) Download the item from the bucket. If an error occurs, log it and exit. Otherwise, notify the user that the download succeeded.
+	file, err := os.Create(destination_filename)
+	numBytes, err := downloader.Download(file,
+		&s3.GetObjectInput{
+			Bucket: aws.String(b.Name),
+			Key:    aws.String(key),
+		})
+
+	if err != nil {
+		log.Fatalf("Unable to download item %q, %v", key, err)
+	}
+
+	fmt.Println("Downloaded", file.Name(), numBytes, "bytes")
 }
 
 func (obj *S3) StreamObject(filename string, path string) error {

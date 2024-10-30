@@ -9,6 +9,7 @@ import (
 	env "search.eight/internal/env"
 	"search.eight/internal/queueing"
 	sqlite "search.eight/internal/sqlite"
+	"search.eight/internal/util"
 	"search.eight/pkg/procs"
 )
 
@@ -26,7 +27,7 @@ func PackWriter(chp <-chan Package, chf chan<- *sqlite.PackTable) {
 		// log.Println("PACKING", host, pkg.JSON["key"])
 		// Only create the connection once.
 		if _, ok := databases[host]; !ok {
-			table, err := sqlite.CreatePackTable(sqlite.SqliteFilename(host))
+			table, err := sqlite.CreatePackTable(sqlite.SqliteFilename(host), pkg.JSON)
 			if err != nil {
 				log.Println("Could not create pack table for", host)
 				log.Fatal(err)
@@ -94,6 +95,15 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 					}
 
 					//tables[sqlite_filename].DB.Close()
+					log.Println("PACK", tables[sqlite_filename].JSON)
+					// Enqueue serve
+					// This generic queue lets us queue new jobs
+					// when we don't have another handle to grab.
+					e_c := queueing.NewRiver()
+					queueing.QueueingClient(e_c, util.GenericRequest{})
+					e_c.InsertTx(util.GenericRequest{
+						Key:       tables[sqlite_filename].JSON["key"],
+						QueueName: "serve"})
 
 					delete(clocks, sqlite_filename)
 					delete(tables, sqlite_filename)

@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"search.eight/internal/api"
+	"search.eight/internal/env"
 	"search.eight/internal/util"
 	"search.eight/pkg/procs"
 )
@@ -47,15 +48,22 @@ func content_key(host string, old_key string, page_number int) string {
 
 func (e *Extractor) Extract(erw *ExtractRequestWorker) {
 	cleaned_mime_type := util.CleanedMimeType(e.Raw["content-type"])
+
+	s, _ := env.Env.GetService("extract")
+
 	switch cleaned_mime_type {
 	case "text/html":
 		// This inserts into a named queue, not the queue defined by the struct.
 		erw.EnqueueClient.InsertTx(util.GenericRequest{
-			Key:       content_key(e.Raw["host"], e.Job.Args.Key, -1),
+			Key:       e.Job.Args.Key,
 			QueueName: "walk"})
-		e.ExtractHtml(erw)
+		if s.GetParamBool("extract_html") {
+			e.ExtractHtml(erw)
+		}
 	case "application/pdf":
-		e.ExtractPdf(erw)
+		if s.GetParamBool("extract_pdf") {
+			e.ExtractPdf(erw)
+		}
 	}
 }
 

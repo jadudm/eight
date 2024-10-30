@@ -13,12 +13,18 @@ VCAP_SERVICES:
       credentials:
         port: 8888
       parameters:
-        cache-ttl-minutes: 5
+        cache-ttl-minutes: 30
         cache-ttl-seconds: 0
     - name: "extract"
       credentials:
         port: 8888
+      parameters:
+        extract_pdf: false
+        extract_html: true
     - name: "pack"
+      credentials:
+        port: 8888
+    - name: "serve"
       credentials:
         port: 8888
   s3:

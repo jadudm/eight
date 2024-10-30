@@ -51,24 +51,6 @@ type Service struct {
 	Parameters  Parameters  `mapstructure:"parameters"`
 }
 
-func (s *Service) GetParamInt64(key string) int64 {
-	if param_val, ok := s.Parameters[key]; ok {
-		return int64(param_val.(int))
-	} else {
-		log.Fatalf("ENV no int param found for %s", key)
-		return 0
-	}
-}
-
-func (s *Service) GetParamString(key string) string {
-	if param_val, ok := s.Parameters[key]; ok {
-		return param_val.(string)
-	} else {
-		log.Fatalf("ENV no string param found for %s", key)
-		return ""
-	}
-}
-
 type Database = Service
 
 type Bucket = Service
@@ -105,6 +87,8 @@ func InitGlobalEnv() {
 	Env.UserServices = Env.VcapServices["user-provided"]
 }
 
+// FIXME: I later added `GetService`, and it is a cleaner
+// approach. Use that instead.
 func (e *env) GetServiceByName(category string, name string) (*Service, error) {
 	for _, s := range e.VcapServices[category] {
 		if s.Name == name {
@@ -159,4 +143,31 @@ func IsContainerEnv() bool {
 
 func IsCloudEnv() bool {
 	return slices.Contains(cf_envs, os.Getenv("ENV"))
+}
+
+func (s *Service) GetParamInt64(key string) int64 {
+	if param_val, ok := s.Parameters[key]; ok {
+		return int64(param_val.(int))
+	} else {
+		log.Fatalf("ENV no int param found for %s", key)
+		return 0
+	}
+}
+
+func (s *Service) GetParamString(key string) string {
+	if param_val, ok := s.Parameters[key]; ok {
+		return param_val.(string)
+	} else {
+		log.Fatalf("ENV no string param found for %s", key)
+		return ""
+	}
+}
+
+func (s *Service) GetParamBool(key string) bool {
+	if param_val, ok := s.Parameters[key]; ok {
+		return param_val.(bool)
+	} else {
+		log.Fatalf("ENV no bool param found for %s", key)
+		return false
+	}
 }

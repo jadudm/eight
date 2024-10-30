@@ -82,9 +82,9 @@ func (crw *FetchRequestWorker) Work(
 
 	// If it is not cached, we have work to do.
 	// path, err := store_to_s3(crw.Bucket, job.Args.Host, job.Args.Path)
-	page_bytes := fetch_page_content(job)
-
-	err := crw.StorageClient.Store(job_to_s3_key(job), page_bytes)
+	page_json := fetch_page_content(job)
+	page_json["key"] = job_to_s3_key(job)
+	err := crw.StorageClient.Store(job_to_s3_key(job), page_json)
 
 	// We get an error if we can't write to S3
 	if err != nil {
