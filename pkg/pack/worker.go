@@ -7,7 +7,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	schemas "search.eight/internal/sqlite/schemas"
+	schemas "github.com/jadudm/eight/internal/sqlite/schemas"
 )
 
 type Package struct {

@@ -1,9 +1,9 @@
 package serve
 
 import (
+	env "github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/pkg/procs"
 	"github.com/riverqueue/river"
-	env "search.eight/internal/env"
-	"search.eight/pkg/procs"
 )
 
 type ServeRequest struct {

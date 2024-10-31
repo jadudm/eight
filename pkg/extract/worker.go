@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"log"
 
-	"search.eight/internal/api"
-	"search.eight/internal/env"
-	"search.eight/internal/util"
-	"search.eight/pkg/procs"
+	"github.com/jadudm/eight/internal/api"
+	"github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/util"
+	"github.com/jadudm/eight/pkg/procs"
 )
 
 type Extractor struct {

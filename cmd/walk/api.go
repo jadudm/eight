@@ -7,8 +7,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
-	"search.eight/internal/api"
-	"search.eight/pkg/walk"
+	"github.com/jadudm/eight/internal/api"
+	"github.com/jadudm/eight/pkg/walk"
 )
 
 var WALK_API_VERSION = "1.0.0"

@@ -1,11 +1,11 @@
 package pack
 
 import (
+	env "github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/queueing"
+	"github.com/jadudm/eight/internal/sqlite"
+	"github.com/jadudm/eight/pkg/procs"
 	"github.com/riverqueue/river"
-	env "search.eight/internal/env"
-	"search.eight/internal/queueing"
-	"search.eight/internal/sqlite"
-	"search.eight/pkg/procs"
 )
 
 type PackRequest struct {

@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"search.eight/internal/api"
-	"search.eight/internal/util"
-	"search.eight/pkg/fetch"
+	"github.com/jadudm/eight/internal/api"
+	"github.com/jadudm/eight/internal/util"
+	"github.com/jadudm/eight/pkg/fetch"
 )
 
 type Walker struct {

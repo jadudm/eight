@@ -7,8 +7,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
-	"search.eight/internal/api"
-	"search.eight/pkg/extract"
+	"github.com/jadudm/eight/internal/api"
+	"github.com/jadudm/eight/pkg/extract"
 )
 
 var EXTRACT_API_VERSION = "1.0.0"

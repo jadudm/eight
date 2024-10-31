@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	search_db "search.eight/internal/sqlite/schemas"
+	search_db "github.com/jadudm/eight/internal/sqlite/schemas"
 )
 
 //go:embed schema.sql

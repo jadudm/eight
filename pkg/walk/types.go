@@ -1,9 +1,9 @@
 package walk
 
 import (
+	"github.com/jadudm/eight/internal/queueing"
+	"github.com/jadudm/eight/pkg/procs"
 	"github.com/riverqueue/river"
-	"search.eight/internal/queueing"
-	"search.eight/pkg/procs"
 )
 
 type WalkRequest struct {

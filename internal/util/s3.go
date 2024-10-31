@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"search.eight/internal/env"
+	"github.com/jadudm/eight/internal/env"
 )
 
 // func session_s3(b *env.Bucket) (*aws_s3.S3, *session.Session) {

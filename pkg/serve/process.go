@@ -3,9 +3,9 @@ package serve
 import (
 	"log"
 
-	env "search.eight/internal/env"
-	"search.eight/internal/queueing"
-	"search.eight/pkg/procs"
+	env "github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/queueing"
+	"github.com/jadudm/eight/pkg/procs"
 )
 
 func Serve(ch_req chan *ServeRequest) {

@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"search.eight/internal/api"
-	"search.eight/internal/env"
-	"search.eight/pkg/extract"
+	"github.com/jadudm/eight/internal/api"
+	"github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/pkg/extract"
 )
 
 func main() {

@@ -8,9 +8,9 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
-	"search.eight/internal/api"
-	"search.eight/internal/env"
-	"search.eight/pkg/serve"
+	"github.com/jadudm/eight/internal/api"
+	"github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/pkg/serve"
 )
 
 func main() {

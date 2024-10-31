@@ -8,11 +8,11 @@ import (
 
 	pgx "github.com/jackc/pgx/v5"
 	pgxpool "github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jadudm/eight/internal/env"
 	river "github.com/riverqueue/river"
 	rpgxv5 "github.com/riverqueue/river/riverdriver/riverpgxv5"
 	rivermigrate "github.com/riverqueue/river/rivermigrate"
 	"github.com/riverqueue/river/rivershared/util/slogutil"
-	"search.eight/internal/env"
 )
 
 // type QueueNameType string

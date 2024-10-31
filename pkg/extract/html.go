@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"search.eight/internal/util"
-	"search.eight/pkg/pack"
+	"github.com/jadudm/eight/internal/util"
+	"github.com/jadudm/eight/pkg/pack"
 )
 
 func scrape_sel(sel *goquery.Selection) string {

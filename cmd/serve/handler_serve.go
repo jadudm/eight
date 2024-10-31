@@ -8,9 +8,9 @@ import (
 	"os"
 	"time"
 
-	"search.eight/internal/env"
-	"search.eight/internal/sqlite/schemas"
-	"search.eight/pkg/serve"
+	"github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/sqlite/schemas"
+	"github.com/jadudm/eight/pkg/serve"
 )
 
 // FIXME This becomes the API search interface

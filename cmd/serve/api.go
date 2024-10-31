@@ -6,7 +6,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
-	"search.eight/pkg/serve"
+	"github.com/jadudm/eight/pkg/serve"
 )
 
 var SERVE_API_VERSION = "1.0.0"

@@ -5,10 +5,10 @@ import (
 	"time"
 
 	expirable "github.com/go-pkgz/expirable-cache/v3"
-	env "search.eight/internal/env"
-	"search.eight/internal/queueing"
-	"search.eight/pkg/fetch"
-	"search.eight/pkg/procs"
+	env "github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/queueing"
+	"github.com/jadudm/eight/pkg/fetch"
+	"github.com/jadudm/eight/pkg/procs"
 )
 
 var cache expirable.Cache[string, int]

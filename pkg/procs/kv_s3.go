@@ -18,8 +18,8 @@ import (
 	"github.com/philippgille/gokv/encoding"
 	gokv_s3 "github.com/philippgille/gokv/s3"
 
-	"search.eight/internal/env"
-	"search.eight/internal/util"
+	"github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/util"
 )
 
 type S3 struct {

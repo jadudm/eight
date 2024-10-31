@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	env "search.eight/internal/env"
-	"search.eight/internal/sqlite"
+	env "github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/sqlite"
 )
 
 // The worker just grabs things off the queue and

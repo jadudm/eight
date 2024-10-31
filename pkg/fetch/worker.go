@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"search.eight/internal/env"
-	"search.eight/pkg/extract"
+	"github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/pkg/extract"
 )
 
 func job_to_string(job *FetchRequestJob) string {

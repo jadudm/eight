@@ -1,4 +1,4 @@
-module search.eight
+module github.com/jadudm/eight
 
 go 1.23.2
 

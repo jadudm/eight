@@ -6,9 +6,9 @@ import (
 	"log"
 	"maps"
 
+	"github.com/jadudm/eight/internal/util"
+	"github.com/jadudm/eight/pkg/pack"
 	"github.com/johbar/go-poppler"
-	"search.eight/internal/util"
-	"search.eight/pkg/pack"
 )
 
 func (e *Extractor) ExtractPdf(erw *ExtractRequestWorker) {

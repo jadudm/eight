@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
-	"search.eight/internal/api"
-	env "search.eight/internal/env"
-	"search.eight/internal/queueing"
-	sqlite "search.eight/internal/sqlite"
-	"search.eight/internal/util"
-	"search.eight/pkg/procs"
+	"github.com/jadudm/eight/internal/api"
+	env "github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/queueing"
+	sqlite "github.com/jadudm/eight/internal/sqlite"
+	"github.com/jadudm/eight/internal/util"
+	"github.com/jadudm/eight/pkg/procs"
 )
 
 // The PackWriter provides concurrency protection for the

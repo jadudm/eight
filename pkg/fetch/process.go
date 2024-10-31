@@ -3,10 +3,10 @@ package fetch
 import (
 	"log"
 
-	env "search.eight/internal/env"
-	"search.eight/internal/queueing"
-	"search.eight/pkg/extract"
-	"search.eight/pkg/procs"
+	env "github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/queueing"
+	"github.com/jadudm/eight/pkg/extract"
+	"github.com/jadudm/eight/pkg/procs"
 )
 
 func Fetch(ch_req chan *FetchRequest) {

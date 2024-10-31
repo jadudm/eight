@@ -1,10 +1,10 @@
 package extract
 
 import (
+	env "github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/queueing"
+	"github.com/jadudm/eight/pkg/procs"
 	"github.com/riverqueue/river"
-	env "search.eight/internal/env"
-	"search.eight/internal/queueing"
-	"search.eight/pkg/procs"
 )
 
 type ExtractRequest struct {

@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"search.eight/internal/env"
+	"github.com/jadudm/eight/internal/env"
 )
 
 // This is essentially a full API back-to-front.
