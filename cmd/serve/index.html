@@ -15,10 +15,11 @@
       <div class="grid-row grid-gap">
         <div class="usa-layout-docs__sidenav display-none desktop:display-block desktop:grid-col-3">
           <nav aria-label="Secondary navigation">
-            <ul class="usa-sidenav">
+            <ul class="usa-sidenav" id="database-list">
               <li class="usa-sidenav__item">
                 <a href="javascript:void(0);">Parent link</a>
               </li>
+              <!--
               <li class="usa-sidenav__item">
                 <a href="javascript:void(0);" class="usa-current">Current page</a>
                 <ul class="usa-sidenav__sublist">
@@ -47,6 +48,8 @@
               <li class="usa-sidenav__item">
                 <a href="javascript:void(0);">Parent link</a>
               </li>
+
+              -->
             </ul>
           </nav>
         </div>
@@ -57,35 +60,25 @@
           </p>
 
           <section aria-label="Big search component">
-            <!--                
-
-                    <label class="usa-label" for="fruit">Select a site</label>
-                    
-                    <label class="usa-label" for="input-type-text">Search site</label>
-<input class="usa-input" id="six-site" name="input-type-text" />
-                <br/> -->
-
             <label class="usa-sr-only" for="search-field-en-big">Search</label>
             <input class="usa-input" id="six-search" type="six-search" name="six-search" />
             <br />
             <button class="usa-button" id="six-button">
-              <span class="usa-search__submit-text">Search</span><img src="/assets/img/usa-icons-bg/search--white.svg"
-                class="usa-search__submit-icon" alt="Search" />
+              <span class="usa-search__submit-text">Search</span>
             </button>
-
-            <ol id="six-list">
-            </ol>
+            <ol id="six-list"></ol>
           </section>
         </main>
       </div>
 
 
       <script>
-        document.getElementById("six-button").onclick = function () {
-          console.log("YOU CLICKED ME!");
+
+
+        function DoTheSearch() {
           // https://stackoverflow.com/questions/24468459/sending-a-json-to-server-and-retrieving-a-json-in-return-without-jquery
           // Sending and receiving data in JSON format using POST method
-          // http POST http://localhost:8484/search/www.cloud.gov terms="python cloud foundry developers"
+          // http POST http://localhost:10004/search/cloud.gov terms="python cloud foundry developers"
 
           // let site = document.getElementById("six-site");
           site_url = "{HOST}"
@@ -139,46 +132,67 @@
             });
         };
 
+        function HandleTheKeyboardClicks() {
+          var key = window.event.keyCode;
+          // If the user has pressed enter
+          if ((key === 13) || (key === 32)) {
+            DoTheSearch();
+          }
+          return true;
+        }
+
+
+        function GetDatabases() {
+          var post_url = "http://localhost:{PORT}/databases"
+          fetch(post_url, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(responseData => {
+              console.log('Response Data:', responseData);
+              document.getElementById("database-list").innerHTML = "";
+              var list = document.getElementById('database-list');
+              for (var k in responseData.databases) {
+                var db = responseData.databases[k];
+                var entry = document.createElement('li');
+                entry.classList.add("usa-sidenav__item")
+                if ("{HOST}" === db) {
+                  entry.classList.add("usa-current");
+                }
+                var link = document.createElement('a')
+                link.innerHTML = db
+                link.setAttribute("href", "http://localhost:{PORT}/search/" + db)
+                entry.appendChild(link)
+                list.appendChild(entry);
+                console.log(entry);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+        };
+
+
+        function DoAllTheThings() {
+          GetDatabases();
+        }
+
+
+        document.getElementById("six-search").onkeypress = HandleTheKeyboardClicks;
+        document.getElementById("six-button").onclick = DoTheSearch;
+        window.onload = DoAllTheThings;
+
 
       </script>
 
-      <div class="usa-layout-docs__sidenav desktop:display-none">
-        <nav aria-label="Secondary navigation">
-          <ul class="usa-sidenav">
-            <li class="usa-sidenav__item">
-              <a href="javascript:void(0);">Parent link</a>
-            </li>
-            <li class="usa-sidenav__item">
-              <a href="javascript:void(0);" class="usa-current">Current page</a>
-              <ul class="usa-sidenav__sublist">
-                <li class="usa-sidenav__item">
-                  <a href="javascript:void(0);">Child link</a>
-                </li>
-                <li class="usa-sidenav__item">
-                  <a href="javascript:void(0);" class="usa-current">Child link</a>
-                  <ul class="usa-sidenav__sublist">
-                    <li class="usa-sidenav__item">
-                      <a href="javascript:void(0);">Grandchild link</a>
-                    </li>
-                    <li class="usa-sidenav__item">
-                      <a href="javascript:void(0);" class="usa-current">Grandchild link</a>
-                    </li>
-                    <li class="usa-sidenav__item">
-                      <a href="javascript:void(0);">Grandchild link</a>
-                    </li>
-                  </ul>
-                </li>
-                <li class="usa-sidenav__item">
-                  <a href="javascript:void(0);">Child link</a>
-                </li>
-              </ul>
-            </li>
-            <li class="usa-sidenav__item">
-              <a href="javascript:void(0);">Parent link</a>
-            </li>
-          </ul>
-        </nav>
-      </div>
     </div>
   </div>
   <div class="usa-identifier">

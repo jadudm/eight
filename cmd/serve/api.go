@@ -1,103 +1,15 @@
 package main
 
 import (
-	"context"
-	"database/sql"
-	"errors"
-	"log"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
-	"search.eight/internal/env"
-	"search.eight/internal/sqlite/schemas"
 	"search.eight/pkg/serve"
 )
 
 var SERVE_API_VERSION = "1.0.0"
-
-// FIXME This becomes the API search interface
-type ServeRequestInput struct {
-	Body struct {
-		Host  string `json:"host" maxLength:"500" doc:"Host to search"`
-		Terms string `json:"terms" maxLength:"200" doc:"Search terms"`
-	}
-}
-
-type RequestReturn func(ctx context.Context, input *ServeRequestInput) (*struct{}, error)
-
-func ServeRequestHandler(ch chan *serve.ServeRequest) RequestReturn {
-	return func(ctx context.Context, input *ServeRequestInput) (*struct{}, error) {
-		cr := serve.NewServeRequest()
-		// cr.Host = input.Body.Host
-		// cr.Path = input.Body.Path
-		ch <- &cr
-		return nil, nil
-	}
-}
-
-type ServeResponse struct {
-	Result  string                               `json:"result"`
-	Elapsed time.Duration                        `json:"elapsed"`
-	Results []schemas.SearchSiteIndexSnippetsRow `json:"results"`
-}
-
-type ServeResponseBody struct {
-	Body *ServeResponse
-}
-
-func ServeHandler(ctx context.Context, input *ServeRequestInput) (*ServeResponseBody, error) {
-	start := time.Now()
-	host := input.Body.Host
-	terms := input.Body.Terms
-	s, _ := env.Env.GetService("serve")
-	database_files_path := s.GetParamString("database_files_path")
-
-	sqlite_file := database_files_path + "/" + host + ".sqlite"
-	log.Println(sqlite_file)
-	if _, err := os.Stat(sqlite_file); errors.Is(err, os.ErrNotExist) {
-		duration := time.Since(start)
-		return &ServeResponseBody{
-			Body: &ServeResponse{
-				Result:  "err",
-				Elapsed: duration,
-				Results: nil,
-			}}, err
-	}
-
-	db, err := sql.Open("sqlite3", sqlite_file)
-	if err != nil {
-		log.Fatal("SERVCE cannot open SQLite file", sqlite_file)
-	}
-
-	queries := schemas.New(db)
-	res, err := queries.SearchSiteIndexSnippets(ctx, schemas.SearchSiteIndexSnippetsParams{
-		Text:  terms,
-		Limit: 20,
-	})
-
-	duration := time.Since(start)
-
-	if err != nil {
-		return &ServeResponseBody{
-			Body: &ServeResponse{
-				Result:  "err",
-				Elapsed: duration,
-				Results: nil,
-			}}, err
-	} else {
-		return &ServeResponseBody{
-			Body: &ServeResponse{
-				Result:  "ok",
-				Elapsed: duration,
-				Results: res,
-			}}, nil
-	}
-
-}
 
 func ServeApi(router *chi.Mux, ch chan *serve.ServeRequest) *chi.Mux {
 	// Will this layer on top of the router I pass in?
@@ -123,6 +35,16 @@ func ServeApi(router *chi.Mux, ch chan *serve.ServeRequest) *chi.Mux {
 		Tags:          []string{"Serve"},
 		DefaultStatus: http.StatusAccepted,
 	}, ServeHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "get-info-request",
+		Method:        http.MethodGet,
+		Path:          "/databases",
+		Summary:       "List the databases available",
+		Description:   "List the databases available",
+		Tags:          []string{"list"},
+		DefaultStatus: http.StatusAccepted,
+	}, ListDatabaseRequestHandler)
 
 	return router
 }

@@ -8,7 +8,7 @@ build: generate
 	docker build -t eight/dev -f Dockerfile.base .
 
 run: generate cleanup
-	cd assets ; unzip -o static.zip
+	cd assets ; unzip -o static.zip > /dev/null 2>&1
 	docker compose up
 
 cloc:

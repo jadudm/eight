@@ -10,7 +10,10 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
+	"time"
 
+	"search.eight/internal/env"
 	"search.eight/pkg/extract"
 )
 
@@ -23,6 +26,8 @@ func job_to_s3_key(job *FetchRequestJob) string {
 	return fmt.Sprintf("%s/%x.json", job.Args.Host, sha1)
 }
 
+var last_hit sync.Map
+
 func fetch_page_content(job *FetchRequestJob) map[string]string {
 	url := url.URL{
 		Scheme: job.Args.Scheme,
@@ -30,6 +35,21 @@ func fetch_page_content(job *FetchRequestJob) map[string]string {
 		Path:   job.Args.Path,
 	}
 
+	// Be nice.
+	s, _ := env.Env.GetService("fetch")
+	millis := s.GetParamInt64("polite_sleep_milliseconds")
+	sleepy_time := time.Duration(millis * int64(time.Millisecond))
+	if t, ok := last_hit.Load(job.Args.Host); ok {
+		if time.Since(t.(time.Time)) < sleepy_time {
+			log.Println("FETCH sleeping for", job.Args.Host)
+			time.Sleep(sleepy_time)
+		}
+	}
+	last_hit.Store(job.Args.Host, time.Now())
+
+	// FIXME: This would be a good place to do a HEAD request, check the MIME type,
+	// and decide not to grab the content if we can't do anything with it.
+	log.Println(job.Args.Host, job.Args.Path)
 	res, err := http.Get(url.String())
 	if err != nil {
 		log.Fatal(err)

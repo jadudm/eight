@@ -9,6 +9,8 @@ VCAP_SERVICES:
     - name: "fetch"
       credentials:
         port: 8888
+      parameters:
+        polite_sleep_milliseconds: 2000
     - name: "walk"
       credentials:
         port: 8888
@@ -31,6 +33,7 @@ VCAP_SERVICES:
         external_port: 10004
         static_files_path: /home/vcap/app/assets/static
         database_files_path: /home/vcap/app/assets/databases
+        results_per_query: 10
   s3:
     #################################
     # fetch bucket
