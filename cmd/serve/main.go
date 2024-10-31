@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/go-chi/chi/v5"
 	"search.eight/internal/api"
 	"search.eight/internal/env"
 	"search.eight/pkg/serve"
@@ -13,6 +16,11 @@ import (
 func main() {
 	env.InitGlobalEnv()
 
+	this, err := env.Env.GetServiceByName("user-provided", "serve")
+	s, _ := env.Env.GetService("serve")
+	external_port := s.GetParamInt64("external_port")
+	static_files_path := s.GetParamString("static_files_path")
+
 	log.Println("environment initialized")
 
 	ch := make(chan *serve.ServeRequest)
@@ -20,9 +28,27 @@ func main() {
 	r := api.BaseMux()
 	extended_api := ServeApi(r, ch)
 
+	r.Route("/search", func(r chi.Router) {
+		r.Get("/{host}", func(rw http.ResponseWriter, r *http.Request) {
+			host := chi.URLParam(r, "host")
+			rw.Header().Set("x-search-host", host)
+			data, err := os.ReadFile("index.html")
+			data = bytes.ReplaceAll(data, []byte("{HOST}"), []byte(host))
+			data = bytes.ReplaceAll(data, []byte("{PORT}"), []byte(fmt.Sprintf("%d", external_port)))
+
+			if err != nil {
+				log.Fatal(err)
+			}
+			rw.Write(data)
+		})
+	})
+
+	// Serve up the search page
+	fs := http.FileServer(http.Dir(static_files_path))
+	r.Handle("/static/*", http.StripPrefix("/static/", fs))
+
 	go serve.Serve(ch)
 
-	this, err := env.Env.GetServiceByName("user-provided", "serve")
 	if err != nil {
 		log.Fatal(err)
 	}

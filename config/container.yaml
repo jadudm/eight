@@ -27,6 +27,9 @@ VCAP_SERVICES:
     - name: "serve"
       credentials:
         port: 8888
+      parameters:
+        external_port: 10004
+        static_files_path: /app/vcap/assets/static
   s3:
     #################################
     # fetch bucket

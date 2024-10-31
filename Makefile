@@ -8,7 +8,8 @@ build: generate
 	docker build -t eight/dev -f Dockerfile.base .
 
 run: generate cleanup
+	cd assets ; unzip -o static.zip ; echo 'static/*' > .gitignore
 	docker compose up
 
 cloc:
-	docker run --rm -v ${PWD}:/tmp aldanial/cloc --exclude-dir=static .
+	docker run --rm -v ${PWD}:/tmp aldanial/cloc --exclude-dir=serve/static --exclude-dir=assets .

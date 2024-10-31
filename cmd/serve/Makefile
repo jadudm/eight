@@ -1,8 +1,8 @@
 run:	
-	go run *.go
+	go run --tags fts5 *.go
 
 build: 
-	go build -buildvcs=false -o serve.exe
+	go build --tags fts5 -buildvcs=false -o serve.exe
 
 test:
 	go test
