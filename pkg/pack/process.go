@@ -95,7 +95,7 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 					}
 
 					//tables[sqlite_filename].DB.Close()
-					log.Println("PACK", tables[sqlite_filename].JSON)
+					//log.Println("PACK", tables[sqlite_filename].JSON)
 					// Enqueue serve
 					// This generic queue lets us queue new jobs
 					// when we don't have another handle to grab.

@@ -3,7 +3,9 @@ package serve
 import (
 	"context"
 	"log"
+	"os"
 
+	env "search.eight/internal/env"
 	"search.eight/internal/sqlite"
 )
 
@@ -23,9 +25,14 @@ func (srw *ServeRequestWorker) Work(
 		log.Fatal(err)
 	}
 
+	s, _ := env.Env.GetService("serve")
+	databases_file_path := s.GetParamString("database_files_path")
+
 	sqlite_filename := sqlite.SqliteFilename(JSON["host"])
 	// Writes to the local filesystem.
-	srw.ServeStorage.GetObject(sqlite_filename, sqlite_filename)
+	path := databases_file_path + "/" + sqlite_filename
+	log.Println(path, "<-", sqlite_filename, os.Getenv("PWD"))
+	srw.ServeStorage.GetObject(path, sqlite_filename)
 
 	if err != nil {
 		log.Fatalf("SERVE could not get bucket %s", "serve")

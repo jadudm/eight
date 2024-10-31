@@ -3,13 +3,16 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
+	"search.eight/internal/env"
 	"search.eight/internal/sqlite/schemas"
 	"search.eight/pkg/serve"
 )
@@ -50,10 +53,21 @@ func ServeHandler(ctx context.Context, input *ServeRequestInput) (*ServeResponse
 	start := time.Now()
 	host := input.Body.Host
 	terms := input.Body.Terms
+	s, _ := env.Env.GetService("serve")
+	database_files_path := s.GetParamString("database_files_path")
 
-	// Search DB
-	//ctx := context.Background()
-	sqlite_file := host + ".sqlite"
+	sqlite_file := database_files_path + "/" + host + ".sqlite"
+	log.Println(sqlite_file)
+	if _, err := os.Stat(sqlite_file); errors.Is(err, os.ErrNotExist) {
+		duration := time.Since(start)
+		return &ServeResponseBody{
+			Body: &ServeResponse{
+				Result:  "err",
+				Elapsed: duration,
+				Results: nil,
+			}}, err
+	}
+
 	db, err := sql.Open("sqlite3", sqlite_file)
 	if err != nil {
 		log.Fatal("SERVCE cannot open SQLite file", sqlite_file)

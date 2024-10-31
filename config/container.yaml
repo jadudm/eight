@@ -19,7 +19,7 @@ VCAP_SERVICES:
       credentials:
         port: 8888
       parameters:
-        extract_pdf: false
+        extract_pdf: true
         extract_html: true
     - name: "pack"
       credentials:
@@ -29,7 +29,8 @@ VCAP_SERVICES:
         port: 8888
       parameters:
         external_port: 10004
-        static_files_path: /app/vcap/assets/static
+        static_files_path: /home/vcap/app/assets/static
+        database_files_path: /home/vcap/app/assets/databases
   s3:
     #################################
     # fetch bucket

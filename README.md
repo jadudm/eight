@@ -18,15 +18,17 @@ Then, run the stack.
 make run
 ```
 
-The latter is just `docker compose up`
+The run generates the database API, and unpacks the USWDS assets into place.
 
 ## interacting with components
 
-To fetch a page from the net, and store it to S3:
+To begin a crawl:
 
 ```
-http PUT localhost:10000/fetch host=cloud.gov path=/pages
+http PUT localhost:10000/fetch host=fac.gov path=/
 ```
+
+The file `container.yaml` is a configuration file with a *few* end-user tunables. The FAC website is small in HTML, but is *large* because it contains 4 PDFs at ~2000 pages each. If you only want to index the HTML, set `extract_pdf` to `false`. (This is good for demonstration purposes.)
 
 To fetch a PDF, and see it extracted:
 
@@ -36,17 +38,31 @@ http PUT localhost:10000/fetch host=app.fac.gov path=/dissemination/report/pdf/2
 
 (approximately 100 pages)
 
-or
+## searching 
+
+After a site is walked and packed, an SQLite file with full-text capabilities is generated. The `serve` component watches for completed files, grabs them from S3, and serves queries from the resulting SQLite database.
 
 ```
-http PUT localhost:10000/fetch host=fac.gov path=assets/compliance/2024-Compliance-Supplement.pdf
+http POST localhost:10004/serve  host=fac.gov terms="community grant"
 ```
 
-(approximately 2100 pages -- the [2CFR200 Appendix XI Compliance Supplement](https://www.fac.gov/assets/compliance/2024-Compliance-Supplement.pdf))
+is how to search using the API; search terms are a single list, and SQLite pulls them apart.
 
-### browsing the local S3 store
+A [WWW-based search interface](http://localhost:10004/search/fac.gov) can be found at [http://localhost:10004/search/fac.gov](http://localhost:10004/search/fac.gov). Note that the final part of the URL
 
-[Minio](https://min.io) is used to simulate S3 locally. 
+```
+http://localhost:10004/search/{HOST}
+```
+
+determines what indexed database will be searched. (E.g. if you have indexed `alice.gov` and `bob.gov`, you choose the database with the last part of the URL path.)
+
+## browsing the backend
+
+The goal is to minimize required services. This stack *only* uses Postgres and S3. 
+
+## browsing S3
+
+The S3 filestore is simulated using a containerized version of [Minio](https://min.io).
 
 ![alt text](docs/images/minio.png)
 
@@ -67,17 +83,18 @@ This lets you watch the queues at [localhost:11111](http://localhost:11111) prov
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              45            490            232           2218
-YAML                             4             14             49            363
-Markdown                        12            194              0            318
+Go                              51            559            258           2520
+YAML                             4             15             53            404
+Markdown                        12            199              0            326
 JSON                             1              0              0            199
+HTML                             1             21              5            171
 Text                             1              0              0            127
-Dockerfile                       5             22             12             54
-make                             7             17              0             52
+Dockerfile                       6             26             15             61
+make                             8             20              0             61
 Python                           2              8              0             44
+Bourne Shell                     5             10              0             30
 SQL                              2              8             10             25
-Bourne Shell                     4              8              0             24
 -------------------------------------------------------------------------------
-SUM:                            83            761            303           3424
+SUM:                            93            866            341           3968
 -------------------------------------------------------------------------------
 ```
