@@ -26,7 +26,7 @@ run: generate clean
 
 .PHONY: terraform
 terraform: build
-
+	cd terraform ; make apply
 
 .PHONY: cloc
 cloc:

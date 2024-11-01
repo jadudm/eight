@@ -23,7 +23,7 @@ clean_fetch:
 .PHONY: fetch
 fetch: clean_fetch app
 	cp ../cmd/fetch/service.exe app/fetch.exe
-	echo "web: ./app/fetch.exe" > app/Procfile
+	echo "web: ./fetch.exe" > app/Procfile
 	cp ../cmd/fetch/apt.yml app/apt.yml
 	cd app ; zip -r -X ../zips/fetch.zip . \
 		-x assets/databases/* \

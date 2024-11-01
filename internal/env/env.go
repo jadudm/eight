@@ -13,19 +13,22 @@ import (
 var Env *env
 
 type env struct {
-	AppEnv          string                 `mapstructure:"APPENV"`
-	Home            string                 `mapstructure:"HOME"`
-	MemoryLimit     string                 `mapstructure:"MEMORY_LIMIT"`
-	Pwd             string                 `mapstructure:"PWD"`
-	TmpDir          string                 `mapstructure:"TMPDIR"`
-	User            string                 `mapstructure:"USER"`
-	VcapServicesRaw map[string]interface{} `mapstructure:"VCAP_SERVICES"`
-	EightServices   map[string][]Service   `mapstructure:"EIGHT_SERVICES"`
+	AppEnv        string               `mapstructure:"APPENV"`
+	Home          string               `mapstructure:"HOME"`
+	MemoryLimit   string               `mapstructure:"MEMORY_LIMIT"`
+	Pwd           string               `mapstructure:"PWD"`
+	TmpDir        string               `mapstructure:"TMPDIR"`
+	User          string               `mapstructure:"USER"`
+	EightServices map[string][]Service `mapstructure:"EIGHT_SERVICES"`
 
 	VcapServices map[string][]Service
 	UserServices []Service
 	Buckets      []Bucket
 	Databases    []Database
+}
+
+type container_env struct {
+	VcapServices map[string][]Service `mapstructure:"VCAP_SERVICES"`
 }
 
 type Credentials struct {
@@ -77,7 +80,6 @@ func InitGlobalEnv() {
 		// https://github.com/spf13/viper/issues/1706
 		// https://github.com/spf13/viper/issues/1671
 		viper.AutomaticEnv()
-		viper.BindEnv("VCAP_SERVICES")
 	}
 
 	err := viper.ReadInConfig()
@@ -86,37 +88,31 @@ func InitGlobalEnv() {
 		log.Fatal("ENV cannot load in the config file")
 	}
 
+	err = viper.Unmarshal(&Env)
+
 	if err != nil {
 		log.Fatal("ENV can't find config files: ", err)
 	}
-
-	err = viper.Unmarshal(&Env)
 
 	if err != nil {
 		log.Fatal("ENV environment can't be loaded: ", err)
 	}
 
-	// Cleanup
 	// CF puts VCAP_* in a string containing JSON.
-	// It has to be unpacked.
+	// This means we don't have 1:1 locally *yet*, but
+	// if we unpack things right, we end up with one struct
+	// with everything in the rgiht places.
 	if IsContainerEnv() {
-		// Locally, I don't need to do anything
-		// but recast everything from interface{}
-		// new_vcs := make(map[string][]Service)
-		// for k, v := range Env.VcapServicesRaw {
-		// 	inner := make([]map[string]string)
-		// 	for inner_k, inner_v := range v.([]map[string]string) {
-		// 		inner[inner_k] =
-		// 	}
-		// }
-		// vcs := make(map[string][]Service, 0)
-		// json.Unmarshal([]byte(viper.GetString("VCAP_SERVICES")), &vcs)
-		// Env.VcapServices = vcs
+		ContainerEnv := container_env{}
+		viper.Unmarshal(&ContainerEnv)
+		Env.VcapServices = ContainerEnv.VcapServices
 	}
 
 	if IsCloudEnv() {
+		// CfEnv := cf_env{}
+		// viper.Unmarshal(&CfEnv)
 		new_vcs := make(map[string][]Service, 0)
-		json.Unmarshal([]byte(viper.GetString("VCAP_SERVICES")), new_vcs)
+		json.Unmarshal([]byte(os.Getenv("VCAP_SERVICES")), &new_vcs)
 		Env.VcapServices = new_vcs
 	}
 
@@ -125,10 +121,9 @@ func InitGlobalEnv() {
 	Env.Databases = Env.VcapServices["aws-rds"]
 	Env.UserServices = Env.EightServices["user-provided"]
 
-	log.Println(Env.VcapServices)
-	log.Println(Env.UserServices)
-	log.Println(Env.Buckets)
-	log.Println(Env.Databases)
+	for _, b := range Env.Buckets {
+		log.Println(b.AsJson())
+	}
 }
 
 // FIXME: I later added `GetService`, and it is a cleaner
@@ -215,4 +210,12 @@ func (s *Service) GetParamBool(key string) bool {
 		log.Fatalf("ENV no bool param found for %s", key)
 		return false
 	}
+}
+
+func (s *Service) AsJson() string {
+	b, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		fmt.Println(err)
+	}
+	return string(b)
 }
