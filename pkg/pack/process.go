@@ -79,7 +79,7 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 					// FIXME: Just send it to S3 for now.
 					// This is still a bit of an MVP.
 
-					b, err := env.Env.GetBucket("serve")
+					b, err := env.Env.GetBucket(env.WorkingObjectStore)
 					if err != nil {
 						log.Println("cannot get serve bucket")
 						log.Fatal(err)
@@ -124,33 +124,22 @@ func Pack(ch_req chan *PackRequest) {
 	go FinalizeTimer(ch_finalize)
 	//go PackWriter(ch_packages, ch_finalize)
 
-	b, _ := env.Env.GetBucket("extract")
-	extract_b, err := env.Env.GetBucket(b.Name)
+	b, err := env.Env.GetBucket(env.WorkingObjectStore)
 	if err != nil {
 		log.Println("cannot get fetch bucket")
 		log.Fatal(err)
 	}
-
-	b, _ = env.Env.GetBucket("pack")
-	pack_b, err := env.Env.GetBucket(b.Name)
-	if err != nil {
-		log.Println("cannot get pack bucket")
-		log.Fatal(err)
-	}
-
-	client_s3_extract := procs.NewKVS3(extract_b)
-	client_s3_pack := procs.NewKVS3(pack_b)
+	client_s3 := procs.NewKVS3(b)
 
 	// This lets us queue new jobs.
 	e_c := queueing.NewRiver()
 	queueing.QueueingClient(e_c, PackRequest{})
 
 	prw := &PackRequestWorker{
-		ExtractStorage: client_s3_extract,
-		PackStorage:    client_s3_pack,
-		EnqueueClient:  e_c,
-		ChanPackages:   ch_packages,
-		ChanFinalize:   ch_finalize,
+		ObjectStorage: client_s3,
+		EnqueueClient: e_c,
+		ChanPackages:  ch_packages,
+		ChanFinalize:  ch_finalize,
 	}
 	work_c := queueing.NewRiver()
 	work_c = queueing.WorkingClient[PackRequest, PackWorker](

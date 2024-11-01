@@ -1,7 +1,6 @@
 package serve
 
 import (
-	env "github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/pkg/procs"
 	"github.com/riverqueue/river"
 )
@@ -17,8 +16,7 @@ func NewServeRequest() ServeRequest {
 }
 
 func (ServeRequest) Kind() string {
-	b, _ := env.Env.GetBucket("serve")
-	return b.Name
+	return "serve"
 }
 
 func (cr ServeRequest) InsertOpts() river.InsertOpts {

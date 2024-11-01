@@ -23,7 +23,7 @@ func (prw *PackRequestWorker) Work(
 ) error {
 	log.Println("PACK", job.Args.Key)
 
-	JSON, err := prw.ExtractStorage.Get(job.Args.Key)
+	JSON, err := prw.ObjectStorage.Get(job.Args.Key)
 	if err != nil {
 		log.Println("Could not get JSON object for key", job.Args.Key)
 	}

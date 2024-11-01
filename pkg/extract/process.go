@@ -10,22 +10,8 @@ import (
 
 func Extract(ch_req chan *ExtractRequest) {
 	// Get the K/V stores ready
-	b, _ := env.Env.GetBucket("fetch")
-	fb, err := env.Env.GetBucket(b.Name)
-	if err != nil {
-		log.Println("cannot get fetch bucket")
-		log.Fatal(err)
-	}
-
-	b, _ = env.Env.GetBucket("extract")
-	eb, err := env.Env.GetBucket(b.Name)
-	if err != nil {
-		log.Println("cannot get extract bucket")
-		log.Fatal(err)
-	}
-
-	s3_fc := procs.NewKVS3(fb)
-	s3_ec := procs.NewKVS3(eb)
+	b, _ := env.Env.GetBucket(env.WorkingObjectStore)
+	s3_b := procs.NewKVS3(b)
 
 	// This lets us queue new jobs.
 	e_c := queueing.NewRiver()
@@ -35,9 +21,8 @@ func Extract(ch_req chan *ExtractRequest) {
 	work_c = queueing.WorkingClient[ExtractRequest, ExtractWorker](
 		work_c, ExtractRequest{},
 		&ExtractRequestWorker{
-			FetchStorage:   s3_fc,
-			ExtractStorage: s3_ec,
-			EnqueueClient:  e_c,
+			ObjectStorage: s3_b,
+			EnqueueClient: e_c,
 		})
 
 	if err := work_c.Client.Start(work_c.Context); err != nil {

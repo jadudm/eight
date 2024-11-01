@@ -73,12 +73,12 @@ func (erw *ExtractRequestWorker) Work(
 ) error {
 	log.Println("EXTRACT", job.Args.Key)
 
-	json_object, err := erw.FetchStorage.Get(job.Args.Key)
+	json_object, err := erw.ObjectStorage.Get(job.Args.Key)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println(json_object["path"], json_object["content-type"])
-	e := NewExtractor(erw.ExtractStorage, json_object, job)
+	e := NewExtractor(erw.ObjectStorage, json_object, job)
 	e.Extract(erw)
 	log.Println("EXTRACT DONE", job.Args.Key)
 

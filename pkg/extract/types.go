@@ -1,7 +1,6 @@
 package extract
 
 import (
-	env "github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/queueing"
 	"github.com/jadudm/eight/pkg/procs"
 	"github.com/riverqueue/river"
@@ -16,8 +15,7 @@ func NewExtractRequest() ExtractRequest {
 }
 
 func (ExtractRequest) Kind() string {
-	b, _ := env.Env.GetBucket("extract")
-	return b.Name
+	return "extract"
 }
 
 func (er ExtractRequest) InsertOpts() river.InsertOpts {
@@ -29,9 +27,8 @@ func (er ExtractRequest) InsertOpts() river.InsertOpts {
 type ExtractRequestJob = river.Job[ExtractRequest]
 
 type ExtractRequestWorker struct {
-	FetchStorage   procs.Storage
-	ExtractStorage procs.Storage
-	EnqueueClient  *queueing.River
+	ObjectStorage procs.Storage
+	EnqueueClient *queueing.River
 	river.WorkerDefaults[ExtractRequest]
 }
 

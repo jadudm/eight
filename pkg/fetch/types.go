@@ -1,7 +1,6 @@
 package fetch
 
 import (
-	env "github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/queueing"
 	"github.com/jadudm/eight/pkg/procs"
 	"github.com/riverqueue/river"
@@ -20,8 +19,7 @@ func NewFetchRequest() FetchRequest {
 }
 
 func (FetchRequest) Kind() string {
-	b, _ := env.Env.GetBucket("fetch")
-	return b.Name
+	return "fetch"
 }
 
 func (cr FetchRequest) InsertOpts() river.InsertOpts {

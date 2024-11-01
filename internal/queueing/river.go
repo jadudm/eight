@@ -37,7 +37,7 @@ func (r *River) initialize() {
 	r.Context = context.Background()
 
 	// Set up a pool
-	connection_string, err := env.Env.GetDatabaseUrl("queue-db")
+	connection_string, err := env.Env.GetDatabaseUrl(env.WorkingDatabase)
 
 	if err != nil {
 		log.Fatal(err)

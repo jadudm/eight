@@ -23,7 +23,7 @@ type env struct {
 
 	VcapServices map[string][]Service
 	UserServices []Service
-	Buckets      []Bucket
+	ObjectStores []Bucket
 	Databases    []Database
 }
 
@@ -63,6 +63,12 @@ type Bucket = Service
 
 var container_envs = []string{"DOCKER", "GH_ACTIONS"}
 var cf_envs = []string{"SANDBOX", "PREVIEW", "DEV", "STAGING", "PROD"}
+
+// Constants for the attached services
+// These reach into the VCAP_SERVICES and are
+// defined in the Terraform.
+const WorkingObjectStore = "experiment-eight-s3"
+const WorkingDatabase = "experiment-eight-db"
 
 func InitGlobalEnv() {
 	Env = &env{}
@@ -117,13 +123,10 @@ func InitGlobalEnv() {
 	}
 
 	// Configure the buckets and databases
-	Env.Buckets = Env.VcapServices["s3"]
+	Env.ObjectStores = Env.VcapServices["s3"]
 	Env.Databases = Env.VcapServices["aws-rds"]
 	Env.UserServices = Env.EightServices["user-provided"]
 
-	for _, b := range Env.Buckets {
-		log.Println(b.AsJson())
-	}
 }
 
 // FIXME: I later added `GetService`, and it is a cleaner
@@ -141,26 +144,34 @@ func (e *env) GetServiceByName(category string, name string) (*Service, error) {
 // https://stackoverflow.com/questions/3582552/what-is-the-format-for-the-postgresql-connection-string-url
 // postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]
 func (e *env) GetDatabaseUrl(name string) (string, error) {
-	params := ""
-	if IsContainerEnv() {
-		params = "sslmode=disable"
-	}
 	for _, db := range e.Databases {
 		if db.Name == name {
-			return fmt.Sprintf("postgresql://%s@%s:%d/%s?%s",
-				db.Credentials.Username,
-				db.Credentials.Host,
-				db.Credentials.Port,
-				db.Credentials.DbName,
-				params,
-			), nil
+			params := ""
+			if IsContainerEnv() {
+				params = "?sslmode=disable"
+				return fmt.Sprintf("postgresql://%s@%s:%d/%s%s",
+					db.Credentials.Username,
+					db.Credentials.Host,
+					db.Credentials.Port,
+					db.Credentials.DbName,
+					params,
+				), nil
+			}
+			if IsCloudEnv() {
+				// FIXME: perhaps just use the URI in both places?
+				if db.Credentials.Port == 0 {
+					db.Credentials.Port = 5432
+				}
+				return db.Credentials.Uri, nil
+			}
+
 		}
 	}
 	return "", fmt.Errorf("ENV no db found with name %s", name)
 }
 
 func (e *env) GetBucket(name string) (Bucket, error) {
-	for _, b := range e.Buckets {
+	for _, b := range e.ObjectStores {
 		if b.Name == name {
 			return b, nil
 		}

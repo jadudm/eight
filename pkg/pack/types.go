@@ -1,7 +1,6 @@
 package pack
 
 import (
-	env "github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/queueing"
 	"github.com/jadudm/eight/internal/sqlite"
 	"github.com/jadudm/eight/pkg/procs"
@@ -17,8 +16,7 @@ func NewPackRequest() PackRequest {
 }
 
 func (PackRequest) Kind() string {
-	b, _ := env.Env.GetBucket("pack")
-	return b.Name
+	return "pack"
 }
 
 func (er PackRequest) InsertOpts() river.InsertOpts {
@@ -30,11 +28,10 @@ func (er PackRequest) InsertOpts() river.InsertOpts {
 type PackRequestJob = river.Job[PackRequest]
 
 type PackRequestWorker struct {
-	ExtractStorage procs.Storage
-	PackStorage    procs.Storage
-	EnqueueClient  *queueing.River
-	ChanPackages   chan Package
-	ChanFinalize   chan *sqlite.PackTable
+	ObjectStorage procs.Storage
+	EnqueueClient *queueing.River
+	ChanPackages  chan Package
+	ChanFinalize  chan *sqlite.PackTable
 
 	river.WorkerDefaults[PackRequest]
 }

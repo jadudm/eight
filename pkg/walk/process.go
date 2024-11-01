@@ -25,14 +25,12 @@ func get_ttl() int64 {
 
 func Walk(ch_req chan *WalkRequest) {
 	// Get the K/V stores ready
-	b, _ := env.Env.GetBucket("fetch")
-	fb, err := env.Env.GetBucket(b.Name)
+	b, err := env.Env.GetBucket(env.WorkingObjectStore)
 	if err != nil {
 		log.Println("cannot get fetch bucket")
 		log.Fatal(err)
 	}
-
-	s3_fc := procs.NewKVS3(fb)
+	client_s3 := procs.NewKVS3(b)
 
 	// This lets us queue new jobs.
 	// We have to queue things for both extract and further crawling
@@ -45,9 +43,9 @@ func Walk(ch_req chan *WalkRequest) {
 	work_c = queueing.WorkingClient[WalkRequest, WalkWorker](
 		work_c, WalkRequest{},
 		&WalkRequestWorker{
-			FetchStorage: s3_fc,
-			EnqueueFetch: e_c,
-			EnqueueWalk:  w_c,
+			ObjectStorage: client_s3,
+			EnqueueFetch:  e_c,
+			EnqueueWalk:   w_c,
 		})
 
 	if err := work_c.Client.Start(work_c.Context); err != nil {

@@ -127,7 +127,7 @@ func (wrw *WalkRequestWorker) Work(
 ) error {
 	log.Println("WALK", job.Args.Key)
 
-	JSON, err := wrw.FetchStorage.Get(job.Args.Key)
+	JSON, err := wrw.ObjectStorage.Get(job.Args.Key)
 	if err != nil {
 		log.Fatal(err)
 	}

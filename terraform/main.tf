@@ -2,7 +2,7 @@ module "database" {
   source = "github.com/gsa-tts/terraform-cloudgov//database?ref=v0.9.1"
   cf_org_name      = "sandbox-gsa"
   cf_space_name    = "matthew.jadud"
-  name             = "queue-db"
+  name             = "experiment-eight-db"
   recursive_delete = false
   tags             = ["eight"]
   rds_plan_name    = "micro-psql"

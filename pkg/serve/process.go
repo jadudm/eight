@@ -11,14 +11,14 @@ import (
 func Serve(ch_req chan *ServeRequest) {
 
 	// Set up the worker.
-	b, err := env.Env.GetBucket("serve")
+	b, err := env.Env.GetBucket(env.WorkingObjectStore)
 	if err != nil {
 		log.Println("cannot get bucket")
 		log.Fatal(err)
 	}
 	s3_c := procs.NewKVS3(b)
 
-	f, err := env.Env.GetBucket("fetch")
+	f, err := env.Env.GetBucket(env.WorkingObjectStore)
 	if err != nil {
 		log.Println("cannot get bucket")
 		log.Fatal(err)

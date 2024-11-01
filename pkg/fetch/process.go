@@ -26,7 +26,7 @@ func Fetch(ch_req chan *FetchRequest) {
 	queueing.QueueingClient(clean_c, extract.ExtractRequest{})
 
 	// Set up the worker.
-	b, err := env.Env.GetBucket("fetch")
+	b, err := env.Env.GetBucket(env.WorkingObjectStore)
 
 	if err != nil {
 		log.Println("cannot get bucket")

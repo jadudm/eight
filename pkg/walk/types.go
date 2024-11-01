@@ -27,9 +27,9 @@ func (er WalkRequest) InsertOpts() river.InsertOpts {
 type WalkRequestJob = river.Job[WalkRequest]
 
 type WalkRequestWorker struct {
-	FetchStorage procs.Storage
-	EnqueueFetch *queueing.River
-	EnqueueWalk  *queueing.River
+	ObjectStorage procs.Storage
+	EnqueueFetch  *queueing.River
+	EnqueueWalk   *queueing.River
 
 	river.WorkerDefaults[WalkRequest]
 }
