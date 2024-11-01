@@ -25,7 +25,7 @@ func (srw *ServeRequestWorker) Work(
 		log.Fatal(err)
 	}
 
-	s, _ := env.Env.GetService("serve")
+	s, _ := env.Env.GetUserService("serve")
 	databases_file_path := s.GetParamString("database_files_path")
 
 	sqlite_filename := sqlite.SqliteFilename(JSON["host"])

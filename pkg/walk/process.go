@@ -14,7 +14,7 @@ import (
 var cache expirable.Cache[string, int]
 
 func get_ttl() int64 {
-	ws, err := env.Env.GetService("walk")
+	ws, err := env.Env.GetUserService("walk")
 	if err != nil {
 		log.Println("WALK no service")
 	}

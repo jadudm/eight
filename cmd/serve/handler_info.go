@@ -55,7 +55,7 @@ type LDBResponseBody struct {
 }
 
 func ListDatabaseRequestHandler(ctx context.Context, input *LDBRequestInput) (*LDBResponseBody, error) {
-	s, _ := env.Env.GetService("serve")
+	s, _ := env.Env.GetUserService("serve")
 	database_files_path := s.GetParamString("database_files_path")
 
 	files, err := os.ReadDir(database_files_path)

@@ -31,7 +31,7 @@ func main() {
 
 	go pack.Pack(ch)
 
-	this, err := env.Env.GetServiceByName("user-provided", "pack")
+	this, err := env.Env.GetUserService("pack")
 	if err != nil {
 		log.Fatal(err)
 	}

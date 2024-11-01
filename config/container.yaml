@@ -4,7 +4,7 @@ MEMORY_LIMIT: "512m"
 PWD: "/home/vcap"
 TMPDIR: "/home/vcap/tmp"
 USER: "vcap"
-VCAP_SERVICES:
+EIGHT_SERVICES:
   user-provided:
     - name: "fetch"
       credentials:
@@ -34,6 +34,7 @@ VCAP_SERVICES:
         static_files_path: /home/vcap/app/assets/static
         database_files_path: /home/vcap/app/assets/databases
         results_per_query: 10
+VCAP_SERVICES:
   s3:
     #################################
     # fetch bucket

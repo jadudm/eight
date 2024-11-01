@@ -49,7 +49,7 @@ func content_key(host string, old_key string, page_number int) string {
 func (e *Extractor) Extract(erw *ExtractRequestWorker) {
 	cleaned_mime_type := util.CleanedMimeType(e.Raw["content-type"])
 
-	s, _ := env.Env.GetService("extract")
+	s, _ := env.Env.GetUserService("extract")
 
 	switch cleaned_mime_type {
 	case "text/html":

@@ -36,7 +36,7 @@ func fetch_page_content(job *FetchRequestJob) map[string]string {
 	}
 
 	// Be nice.
-	s, _ := env.Env.GetService("fetch")
+	s, _ := env.Env.GetUserService("fetch")
 	millis := s.GetParamInt64("polite_sleep_milliseconds")
 	sleepy_time := time.Duration(millis * int64(time.Millisecond))
 	if t, ok := last_hit.Load(job.Args.Host); ok {

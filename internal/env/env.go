@@ -1,6 +1,7 @@
 package env
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -12,14 +13,16 @@ import (
 var Env *env
 
 type env struct {
-	AppEnv       string               `mapstructure:"APPENV"`
-	Home         string               `mapstructure:"HOME"`
-	MemoryLimit  string               `mapstructure:"MEMORY_LIMIT"`
-	Pwd          string               `mapstructure:"PWD"`
-	TmpDir       string               `mapstructure:"TMPDIR"`
-	User         string               `mapstructure:"USER"`
-	VcapServices map[string][]Service `mapstructure:"VCAP_SERVICES"`
+	AppEnv          string                 `mapstructure:"APPENV"`
+	Home            string                 `mapstructure:"HOME"`
+	MemoryLimit     string                 `mapstructure:"MEMORY_LIMIT"`
+	Pwd             string                 `mapstructure:"PWD"`
+	TmpDir          string                 `mapstructure:"TMPDIR"`
+	User            string                 `mapstructure:"USER"`
+	VcapServicesRaw map[string]interface{} `mapstructure:"VCAP_SERVICES"`
+	EightServices   map[string][]Service   `mapstructure:"EIGHT_SERVICES"`
 
+	VcapServices map[string][]Service
 	UserServices []Service
 	Buckets      []Bucket
 	Databases    []Database
@@ -56,35 +59,76 @@ type Database = Service
 type Bucket = Service
 
 var container_envs = []string{"DOCKER", "GH_ACTIONS"}
-var cf_envs = []string{"PREVIEW", "DEV", "STAGING", "PROD"}
+var cf_envs = []string{"SANDBOX", "PREVIEW", "DEV", "STAGING", "PROD"}
 
 func InitGlobalEnv() {
 	Env = &env{}
+	viper.AddConfigPath("/home/vcap/app/config")
+	viper.SetConfigType("yaml")
 
 	if IsContainerEnv() {
+		log.Println("IsContainerEnv")
 		viper.SetConfigName("container")
 	}
+
 	if IsCloudEnv() {
-		viper.SetConfigName("cfenv")
+		log.Println("IsCloudEnv")
+		viper.SetConfigName("cf")
+		// https://github.com/spf13/viper/issues/1706
+		// https://github.com/spf13/viper/issues/1671
+		viper.AutomaticEnv()
+		viper.BindEnv("VCAP_SERVICES")
 	}
 
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("/home/vcap/app/config")
-
 	err := viper.ReadInConfig()
+
+	if err != nil {
+		log.Fatal("ENV cannot load in the config file")
+	}
+
 	if err != nil {
 		log.Fatal("ENV can't find config files: ", err)
 	}
 
 	err = viper.Unmarshal(&Env)
+
 	if err != nil {
 		log.Fatal("ENV environment can't be loaded: ", err)
+	}
+
+	// Cleanup
+	// CF puts VCAP_* in a string containing JSON.
+	// It has to be unpacked.
+	if IsContainerEnv() {
+		// Locally, I don't need to do anything
+		// but recast everything from interface{}
+		// new_vcs := make(map[string][]Service)
+		// for k, v := range Env.VcapServicesRaw {
+		// 	inner := make([]map[string]string)
+		// 	for inner_k, inner_v := range v.([]map[string]string) {
+		// 		inner[inner_k] =
+		// 	}
+		// }
+		// vcs := make(map[string][]Service, 0)
+		// json.Unmarshal([]byte(viper.GetString("VCAP_SERVICES")), &vcs)
+		// Env.VcapServices = vcs
+	}
+
+	if IsCloudEnv() {
+		new_vcs := make(map[string][]Service, 0)
+		json.Unmarshal([]byte(viper.GetString("VCAP_SERVICES")), new_vcs)
+		Env.VcapServices = new_vcs
 	}
 
 	// Configure the buckets and databases
 	Env.Buckets = Env.VcapServices["s3"]
 	Env.Databases = Env.VcapServices["aws-rds"]
-	Env.UserServices = Env.VcapServices["user-provided"]
+	Env.UserServices = Env.EightServices["user-provided"]
+
+	log.Println(Env.VcapServices)
+	log.Println(Env.UserServices)
+	log.Println(Env.Buckets)
+	log.Println(Env.Databases)
 }
 
 // FIXME: I later added `GetService`, and it is a cleaner
@@ -95,6 +139,7 @@ func (e *env) GetServiceByName(category string, name string) (*Service, error) {
 			return &s, nil
 		}
 	}
+
 	return nil, fmt.Errorf("ENV no service in category %s found with name %s", category, name)
 }
 
@@ -128,7 +173,7 @@ func (e *env) GetBucket(name string) (Bucket, error) {
 	return Bucket{}, fmt.Errorf("ENV no bucket with name %s", name)
 }
 
-func (e *env) GetService(name string) (Service, error) {
+func (e *env) GetUserService(name string) (Service, error) {
 	for _, s := range e.UserServices {
 		if s.Name == name {
 			return s, nil

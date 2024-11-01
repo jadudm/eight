@@ -1,0 +1,30 @@
+EIGHT_SERVICES:
+  user-provided:
+    - name: "fetch"
+      credentials:
+        port: 8888
+      parameters:
+        polite_sleep_milliseconds: 2000
+    - name: "walk"
+      credentials:
+        port: 8888
+      parameters:
+        cache-ttl-minutes: 30
+        cache-ttl-seconds: 0
+    - name: "extract"
+      credentials:
+        port: 8888
+      parameters:
+        extract_pdf: true
+        extract_html: true
+    - name: "pack"
+      credentials:
+        port: 8888
+    - name: "serve"
+      credentials:
+        port: 8888
+      parameters:
+        external_port: 10004
+        static_files_path: /home/vcap/app/assets/static
+        database_files_path: /home/vcap/app/assets/databases
+        results_per_query: 10

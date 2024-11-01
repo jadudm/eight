@@ -45,7 +45,7 @@ func ServeHandler(ctx context.Context, input *ServeRequestInput) (*ServeResponse
 	start := time.Now()
 	host := input.Body.Host
 	terms := input.Body.Terms
-	s, _ := env.Env.GetService("serve")
+	s, _ := env.Env.GetUserService("serve")
 	database_files_path := s.GetParamString("database_files_path")
 	results_per_query := s.GetParamInt64("results_per_query")
 

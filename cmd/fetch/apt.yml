@@ -1,0 +1,4 @@
+---
+packages:
+  - libpoppler-glib-dev
+  - poppler-utils

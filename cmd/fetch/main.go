@@ -22,7 +22,7 @@ func main() {
 
 	go fetch.Fetch(ch)
 
-	this, err := env.Env.GetServiceByName("user-provided", "fetch")
+	this, err := env.Env.GetUserService("fetch")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -16,8 +16,8 @@ import (
 func main() {
 	env.InitGlobalEnv()
 
-	this, err := env.Env.GetServiceByName("user-provided", "serve")
-	s, _ := env.Env.GetService("serve")
+	this, err := env.Env.GetUserService("serve")
+	s, _ := env.Env.GetUserService("serve")
 	external_port := s.GetParamInt64("external_port")
 	static_files_path := s.GetParamString("static_files_path")
 

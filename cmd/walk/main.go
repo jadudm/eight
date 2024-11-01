@@ -22,7 +22,7 @@ func main() {
 
 	go walk.Walk(ch)
 
-	this, err := env.Env.GetServiceByName("user-provided", "walk")
+	this, err := env.Env.GetUserService("walk")
 	if err != nil {
 		log.Fatal(err)
 	}

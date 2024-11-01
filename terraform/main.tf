@@ -34,21 +34,20 @@ resource "cloudfoundry_route" "serve_route" {
 }
 
 # prepare one for each app... says how to deploy each app
-data "external" "fetch_zip" {
-  program     = ["/bin/bash", "scripts/prepare_fetch.sh"]
-  working_dir = path.module
-  query = {
-    gitref = "refs/heads/main" # refs/where/branch
-  }
-}
+# data "external" "fetch_zip" {
+#   program     = ["python3", "scripts/prepare_fetch.py"]
+#   working_dir = path.module
+#   query = {
+#     gitref = "refs/heads/main" # refs/where/branch
+#   }
+# }
 
 resource "cloudfoundry_app" "fetch" {
   name                 = "fetch"
   space                = data.cloudfoundry_space.app_space.id
-  buildpack            = "https://github.com/cloudfoundry/go-buildpack.git"
-  path                 = "${path.module}/${data.external.fetch_zip.result.path}"
-  command              = "fetch.exe"
-  source_code_hash     = filesha256("${path.module}/${data.external.fetch_zip.result.path}")
+  buildpacks            = ["https://github.com/cloudfoundry/apt-buildpack", "https://github.com/cloudfoundry/binary-buildpack.git"]
+  path                 = "zips/fetch.zip"
+  source_code_hash     = filesha256("zips/fetch.zip")
   disk_quota           = 128
   memory               = 64
   instances            = 1

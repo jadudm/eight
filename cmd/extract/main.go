@@ -22,7 +22,7 @@ func main() {
 
 	go extract.Extract(ch)
 
-	this, err := env.Env.GetServiceByName("user-provided", "extract")
+	this, err := env.Env.GetUserService("extract")
 	if err != nil {
 		log.Fatal(err)
 	}
