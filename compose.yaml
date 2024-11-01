@@ -30,6 +30,7 @@ services:
       start_period: 60s
     environment:
       ENV: "DOCKER"
+      PORT: 8888
     restart: always
 
   #-----------------------------------------------------
@@ -62,6 +63,7 @@ services:
       start_period: 60s
     environment:
       ENV: "DOCKER"
+      PORT: 8888
     restart: always
 
   #-----------------------------------------------------
@@ -94,6 +96,7 @@ services:
       start_period: 60s
     environment:
       ENV: "DOCKER"
+      PORT: 8888
     restart: always
 
   #-----------------------------------------------------
@@ -126,6 +129,7 @@ services:
       start_period: 60s
     environment:
       ENV: "DOCKER"
+      PORT: 8888
     restart: always
 
   #-----------------------------------------------------
@@ -158,6 +162,7 @@ services:
       start_period: 60s
     environment:
       ENV: "DOCKER"
+      PORT: 8888
     restart: always
 
   #-----------------------------------------------------

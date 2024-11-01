@@ -55,7 +55,7 @@ resource "cloudfoundry_app" "fetch" {
   timeout              = 200
   health_check_type    = "port"
   health_check_timeout = 180
-
+  health_check_http_endpoint = "/heartbeat"
   service_binding {
     service_instance = module.s3-private.bucket_id
   }

@@ -20,6 +20,7 @@ type env struct {
 	TmpDir        string               `mapstructure:"TMPDIR"`
 	User          string               `mapstructure:"USER"`
 	EightServices map[string][]Service `mapstructure:"EIGHT_SERVICES"`
+	Port          string               `mapstructure:"PORT"`
 
 	VcapServices map[string][]Service
 	UserServices []Service
@@ -86,6 +87,7 @@ func InitGlobalEnv() {
 		// https://github.com/spf13/viper/issues/1706
 		// https://github.com/spf13/viper/issues/1671
 		viper.AutomaticEnv()
+		viper.BindEnv("PORT")
 	}
 
 	err := viper.ReadInConfig()

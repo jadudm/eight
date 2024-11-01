@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -31,10 +30,6 @@ func main() {
 
 	go pack.Pack(ch)
 
-	this, err := env.Env.GetUserService("pack")
-	if err != nil {
-		log.Fatal(err)
-	}
-	http.ListenAndServe(fmt.Sprintf(":%d", this.Credentials.Port), extended_api)
-
+	// Local and Cloud should both get this from the environment.
+	http.ListenAndServe(":"+env.Env.Port, extended_api)
 }

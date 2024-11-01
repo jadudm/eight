@@ -16,7 +16,6 @@ import (
 func main() {
 	env.InitGlobalEnv()
 
-	this, err := env.Env.GetUserService("serve")
 	s, _ := env.Env.GetUserService("serve")
 	external_port := s.GetParamInt64("external_port")
 	static_files_path := s.GetParamString("static_files_path")
@@ -49,9 +48,7 @@ func main() {
 
 	go serve.Serve(ch)
 
-	if err != nil {
-		log.Fatal(err)
-	}
-	http.ListenAndServe(fmt.Sprintf(":%d", this.Credentials.Port), extended_api)
+	// Local and Cloud should both get this from the environment.
+	http.ListenAndServe(":"+env.Env.Port, extended_api)
 
 }

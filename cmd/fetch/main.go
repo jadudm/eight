@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -12,7 +11,6 @@ import (
 
 func main() {
 	env.InitGlobalEnv()
-
 	log.Println("environment initialized")
 
 	ch := make(chan *fetch.FetchRequest)
@@ -22,10 +20,8 @@ func main() {
 
 	go fetch.Fetch(ch)
 
-	this, err := env.Env.GetUserService("fetch")
-	if err != nil {
-		log.Fatal(err)
-	}
-	http.ListenAndServe(fmt.Sprintf(":%d", this.Credentials.Port), extended_api)
+	log.Println("Listening to the music of the spheres on", env.Env.Port)
+	// Local and Cloud should both get this from the environment.
+	http.ListenAndServe(":"+env.Env.Port, extended_api)
 
 }
