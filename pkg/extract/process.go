@@ -3,15 +3,11 @@ package extract
 import (
 	"log"
 
-	env "github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/queueing"
-	"github.com/jadudm/eight/pkg/procs"
 )
 
 func Extract(ch_req chan *ExtractRequest) {
 	// Get the K/V stores ready
-	b, _ := env.Env.GetBucket(env.WorkingObjectStore)
-	s3_b := procs.NewKVS3(b)
 
 	// This lets us queue new jobs.
 	e_c := queueing.NewRiver()
@@ -21,7 +17,6 @@ func Extract(ch_req chan *ExtractRequest) {
 	work_c = queueing.WorkingClient[ExtractRequest, ExtractWorker](
 		work_c, ExtractRequest{},
 		&ExtractRequestWorker{
-			ObjectStorage: s3_b,
 			EnqueueClient: e_c,
 		})
 

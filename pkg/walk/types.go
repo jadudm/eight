@@ -2,7 +2,6 @@ package walk
 
 import (
 	"github.com/jadudm/eight/internal/queueing"
-	"github.com/jadudm/eight/pkg/procs"
 	"github.com/riverqueue/river"
 )
 
@@ -27,9 +26,8 @@ func (er WalkRequest) InsertOpts() river.InsertOpts {
 type WalkRequestJob = river.Job[WalkRequest]
 
 type WalkRequestWorker struct {
-	ObjectStorage procs.Storage
-	EnqueueFetch  *queueing.River
-	EnqueueWalk   *queueing.River
+	EnqueueFetch *queueing.River
+	EnqueueWalk  *queueing.River
 
 	river.WorkerDefaults[WalkRequest]
 }

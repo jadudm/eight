@@ -6,15 +6,17 @@ import (
 	"log"
 	"maps"
 
+	q "github.com/jadudm/eight/internal/queueing"
 	"github.com/jadudm/eight/internal/util"
-	"github.com/jadudm/eight/pkg/pack"
+	kv "github.com/jadudm/eight/pkg/kv"
 	"github.com/johbar/go-poppler"
 )
 
-func (e *Extractor) ExtractPdf(erw *ExtractRequestWorker) {
-	// func process_pdf_bytes(db string, url string, b []byte) {
-	// We need a byte array of the original file.
-	raw := e.Raw["raw"]
+func extractPdf(q_client *q.River, obj kv.Object) {
+	extract_bucket := kv.NewKV("extract")
+
+	jsonm := obj.GetJson()
+	raw := jsonm["raw"]
 
 	decoded, err := base64.URLEncoding.DecodeString(raw)
 
@@ -23,7 +25,7 @@ func (e *Extractor) ExtractPdf(erw *ExtractRequestWorker) {
 	}
 
 	// Delete the raw
-	delete(e.Raw, "raw")
+	delete(jsonm, "raw")
 
 	doc, err := poppler.Load(decoded)
 
@@ -31,25 +33,28 @@ func (e *Extractor) ExtractPdf(erw *ExtractRequestWorker) {
 		fmt.Println("Failed to convert body to Document")
 	} else {
 		for page_no := 0; page_no < doc.GetNPages(); page_no++ {
-			extracted_key := content_key(e.Raw["host"], e.Job.Args.Key, page_no+1)
+			extracted_key := content_key(jsonm["host"], obj.GetKey(), page_no+1)
 			page := doc.GetPage(page_no)
 			new := make(map[string]string, 0)
 			// dst, src
-			maps.Copy(new, e.Raw)
+			maps.Copy(new, jsonm)
 			new["content"] = util.RemoveStopwords(page.Text())
 
 			new["path"] = new["path"] + fmt.Sprintf("#page=%d", page_no+1)
 			new["pdf_page_number"] = fmt.Sprintf("%d", page_no+1)
-			e.Storage.Store(extracted_key, new)
-			page.Close()
-			e.Stats.Increment("page_count")
 
-			// Queue the next step
-			erw.EnqueueClient.InsertTx(pack.PackRequest{
-				Key: extracted_key,
+			extract_bucket.Store(extracted_key, new)
+			page.Close()
+			// e.Stats.Increment("page_count")
+
+			q_client.InsertTx(q.GenericRequest{
+				Key:       obj.GetKey(),
+				QueueName: "pack",
 			})
 		}
 	}
-	e.Stats.Increment("document_count")
+
+	//e.Stats.Increment("document_count")
+
 	doc.Close()
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/jadudm/eight/internal/api"
 	"github.com/jadudm/eight/internal/util"
 	"github.com/jadudm/eight/pkg/fetch"
+	kv "github.com/jadudm/eight/pkg/kv"
 )
 
 type Walker struct {
@@ -127,7 +128,11 @@ func (wrw *WalkRequestWorker) Work(
 ) error {
 	log.Println("WALK", job.Args.Key)
 
-	JSON, err := wrw.ObjectStorage.Get(job.Args.Key)
+	fetch_storage := kv.NewKV("fetch")
+
+	obj, err := fetch_storage.Get(job.Args.Key)
+	JSON := obj.GetJson()
+
 	if err != nil {
 		log.Fatal(err)
 	}

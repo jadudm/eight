@@ -8,7 +8,6 @@ import (
 	env "github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/queueing"
 	"github.com/jadudm/eight/pkg/fetch"
-	"github.com/jadudm/eight/pkg/procs"
 )
 
 var cache expirable.Cache[string, int]
@@ -24,14 +23,6 @@ func get_ttl() int64 {
 }
 
 func Walk(ch_req chan *WalkRequest) {
-	// Get the K/V stores ready
-	b, err := env.Env.GetBucket(env.WorkingObjectStore)
-	if err != nil {
-		log.Println("cannot get fetch bucket")
-		log.Fatal(err)
-	}
-	client_s3 := procs.NewKVS3(b)
-
 	// This lets us queue new jobs.
 	// We have to queue things for both extract and further crawling
 	e_c := queueing.NewRiver()
@@ -43,9 +34,8 @@ func Walk(ch_req chan *WalkRequest) {
 	work_c = queueing.WorkingClient[WalkRequest, WalkWorker](
 		work_c, WalkRequest{},
 		&WalkRequestWorker{
-			ObjectStorage: client_s3,
-			EnqueueFetch:  e_c,
-			EnqueueWalk:   w_c,
+			EnqueueFetch: e_c,
+			EnqueueWalk:  w_c,
 		})
 
 	if err := work_c.Client.Start(work_c.Context); err != nil {

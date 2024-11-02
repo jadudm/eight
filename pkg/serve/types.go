@@ -1,7 +1,6 @@
 package serve
 
 import (
-	"github.com/jadudm/eight/pkg/procs"
 	"github.com/riverqueue/river"
 )
 
@@ -28,8 +27,6 @@ func (cr ServeRequest) InsertOpts() river.InsertOpts {
 type ServeRequestJob = river.Job[ServeRequest]
 
 type ServeRequestWorker struct {
-	ServeStorage procs.Storage
-	FetchStorage procs.Storage
 	river.WorkerDefaults[ServeRequest]
 }
 

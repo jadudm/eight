@@ -2,7 +2,7 @@ package extract
 
 import (
 	"github.com/jadudm/eight/internal/queueing"
-	"github.com/jadudm/eight/pkg/procs"
+	kv "github.com/jadudm/eight/pkg/kv"
 	"github.com/riverqueue/river"
 )
 
@@ -27,7 +27,7 @@ func (er ExtractRequest) InsertOpts() river.InsertOpts {
 type ExtractRequestJob = river.Job[ExtractRequest]
 
 type ExtractRequestWorker struct {
-	ObjectStorage procs.Storage
+	ObjectStorage kv.Storage
 	EnqueueClient *queueing.River
 	river.WorkerDefaults[ExtractRequest]
 }

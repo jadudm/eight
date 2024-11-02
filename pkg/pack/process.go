@@ -6,11 +6,9 @@ import (
 	"time"
 
 	"github.com/jadudm/eight/internal/api"
-	env "github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/queueing"
 	sqlite "github.com/jadudm/eight/internal/sqlite"
-	"github.com/jadudm/eight/internal/util"
-	"github.com/jadudm/eight/pkg/procs"
+	kv "github.com/jadudm/eight/pkg/kv"
 )
 
 // The PackWriter provides concurrency protection for the
@@ -79,29 +77,22 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 					// FIXME: Just send it to S3 for now.
 					// This is still a bit of an MVP.
 
-					b, err := env.Env.GetBucket(env.WorkingObjectStore)
-					if err != nil {
-						log.Println("cannot get serve bucket")
-						log.Fatal(err)
-					}
-					kv := procs.NewKVS3(b)
+					store_storage := kv.NewKV("store")
 					log.Println("FINALIZE streaming", sqlite_filename)
 
 					tables[sqlite_filename].PrepForNetwork()
 
-					err = kv.StreamObject(sqlite_filename, sqlite_filename)
+					err := store_storage.StoreFile(sqlite_filename, sqlite_filename)
 					if err != nil {
 						log.Fatal(err)
 					}
 
-					//tables[sqlite_filename].DB.Close()
-					//log.Println("PACK", tables[sqlite_filename].JSON)
 					// Enqueue serve
 					// This generic queue lets us queue new jobs
 					// when we don't have another handle to grab.
 					e_c := queueing.NewRiver()
-					queueing.QueueingClient(e_c, util.GenericRequest{})
-					e_c.InsertTx(util.GenericRequest{
+					queueing.QueueingClient(e_c, queueing.GenericRequest{})
+					e_c.InsertTx(queueing.GenericRequest{
 						Key:       tables[sqlite_filename].JSON["key"],
 						QueueName: "serve"})
 
@@ -124,19 +115,11 @@ func Pack(ch_req chan *PackRequest) {
 	go FinalizeTimer(ch_finalize)
 	//go PackWriter(ch_packages, ch_finalize)
 
-	b, err := env.Env.GetBucket(env.WorkingObjectStore)
-	if err != nil {
-		log.Println("cannot get fetch bucket")
-		log.Fatal(err)
-	}
-	client_s3 := procs.NewKVS3(b)
-
 	// This lets us queue new jobs.
 	e_c := queueing.NewRiver()
 	queueing.QueueingClient(e_c, PackRequest{})
 
 	prw := &PackRequestWorker{
-		ObjectStorage: client_s3,
 		EnqueueClient: e_c,
 		ChanPackages:  ch_packages,
 		ChanFinalize:  ch_finalize,

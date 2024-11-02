@@ -64,9 +64,9 @@ resource "cloudfoundry_app" "fetch" {
     service_instance = module.database.instance_id
   }
 
-  # routes {
-  #   route = cloudfoundry_route.app_route.id
-  # }
+  routes {
+    route = cloudfoundry_route.serve_route.id
+  }
 
   # Use for the first deployment
   environment = {

@@ -2,7 +2,6 @@ package fetch
 
 import (
 	"github.com/jadudm/eight/internal/queueing"
-	"github.com/jadudm/eight/pkg/procs"
 	"github.com/riverqueue/river"
 )
 
@@ -35,7 +34,6 @@ type FetchRequestWorker struct {
 	CacheValChannel chan string
 	CacheInsChannel chan map[string]string
 	EnqueueClient   *queueing.River
-	StorageClient   procs.Storage
 	river.WorkerDefaults[FetchRequest]
 }
 

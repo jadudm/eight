@@ -8,6 +8,7 @@ import (
 	_ "modernc.org/sqlite"
 
 	schemas "github.com/jadudm/eight/internal/sqlite/schemas"
+	kv "github.com/jadudm/eight/pkg/kv"
 )
 
 type Package struct {
@@ -23,10 +24,13 @@ func (prw *PackRequestWorker) Work(
 ) error {
 	log.Println("PACK", job.Args.Key)
 
-	JSON, err := prw.ObjectStorage.Get(job.Args.Key)
+	pack_storage := kv.NewKV("pack")
+
+	obj, err := pack_storage.Get(job.Args.Key)
 	if err != nil {
-		log.Println("Could not get JSON object for key", job.Args.Key)
+		log.Fatal("PACK cannot get obj from S3", job.Args.Key)
 	}
+	JSON := obj.GetJson()
 
 	// Spawn a writer for each new host we see
 	ch, existed := write_channels.LoadOrStore(JSON["host"], make(chan Package))

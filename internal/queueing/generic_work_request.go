@@ -1,8 +1,6 @@
-package util
+package queueing
 
-import (
-	"github.com/riverqueue/river"
-)
+import "github.com/riverqueue/river"
 
 type GenericRequest struct {
 	Key       string `json:"key"`

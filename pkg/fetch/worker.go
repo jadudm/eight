@@ -15,6 +15,7 @@ import (
 
 	"github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/pkg/extract"
+	kv "github.com/jadudm/eight/pkg/kv"
 )
 
 func job_to_string(job *FetchRequestJob) string {
@@ -85,6 +86,8 @@ func (crw *FetchRequestWorker) Work(
 	job *FetchRequestJob,
 ) error {
 
+	fetch_storage := kv.NewKV("fetch")
+
 	// Check the cache.
 	// Using channels because we don't know how/where the cache is
 	// implemented, and we just want to send/receive results.
@@ -104,7 +107,7 @@ func (crw *FetchRequestWorker) Work(
 	// path, err := store_to_s3(crw.Bucket, job.Args.Host, job.Args.Path)
 	page_json := fetch_page_content(job)
 	page_json["key"] = job_to_s3_key(job)
-	err := crw.StorageClient.Store(job_to_s3_key(job), page_json)
+	err := fetch_storage.Store(job_to_s3_key(job), page_json)
 
 	// We get an error if we can't write to S3
 	if err != nil {

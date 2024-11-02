@@ -6,34 +6,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jadudm/eight/internal/api"
 	"github.com/jadudm/eight/internal/env"
-	"github.com/jadudm/eight/internal/util"
-	"github.com/jadudm/eight/pkg/procs"
+	q "github.com/jadudm/eight/internal/queueing"
+	kv "github.com/jadudm/eight/pkg/kv"
 )
 
-type Extractor struct {
-	Raw     map[string]string
-	Storage procs.Storage
-	Job     *ExtractRequestJob
-	Stats   *api.BaseStats
-}
-
 type ExtractionFunction func(map[string]string)
-
-func NewExtractor(s procs.Storage, raw map[string]string, job *ExtractRequestJob) *Extractor {
-	return &Extractor{
-		Raw:     raw,
-		Storage: s,
-		Job:     job,
-		Stats:   api.NewBaseStats("extract"),
-	}
-}
-
-// func _content_key(host string, old_key string, page_number int) string {
-// 	sha1 := sha1.Sum([]byte(fmt.Sprintf("%s/%d", old_key, page_number)))
-// 	return fmt.Sprintf("%s/%x.json", host, sha1)
-// }
 
 func content_key(host string, old_key string, page_number int) string {
 	if page_number == -1 {
@@ -46,23 +24,26 @@ func content_key(host string, old_key string, page_number int) string {
 	}
 }
 
-func (e *Extractor) Extract(erw *ExtractRequestWorker) {
-	cleaned_mime_type := util.CleanedMimeType(e.Raw["content-type"])
+func extract(the_client *q.River, obj kv.Object) {
+	cleaned_mime_type := obj.GetMimeType()
 
 	s, _ := env.Env.GetUserService("extract")
 
+	log.Println("EXTRACT processing MIME type ", cleaned_mime_type)
 	switch cleaned_mime_type {
 	case "text/html":
-		// This inserts into a named queue, not the queue defined by the struct.
-		erw.EnqueueClient.InsertTx(util.GenericRequest{
-			Key:       e.Job.Args.Key,
-			QueueName: "walk"})
+		if s.GetParamBool("walkabout") {
+			the_client.InsertTx(q.GenericRequest{
+				Key:       obj.GetKey(),
+				QueueName: "walk",
+			})
+		}
 		if s.GetParamBool("extract_html") {
-			e.ExtractHtml(erw)
+			extractHtml(the_client, obj)
 		}
 	case "application/pdf":
 		if s.GetParamBool("extract_pdf") {
-			e.ExtractPdf(erw)
+			extractPdf(the_client, obj)
 		}
 	}
 }
@@ -72,14 +53,19 @@ func (erw *ExtractRequestWorker) Work(
 	job *ExtractRequestJob,
 ) error {
 	log.Println("EXTRACT", job.Args.Key)
+	q_client := q.QueueingClient(
+		q.NewRiver(),
+		q.NewGenericRequest(),
+	)
 
-	json_object, err := erw.ObjectStorage.Get(job.Args.Key)
+	fetch_bucket := kv.NewKV("fetch")
+	obj, err := fetch_bucket.Get(job.Args.Key)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("EXTRACT could not get get key from fetch bucket:", job.Args.Key)
 	}
-	log.Println(json_object["path"], json_object["content-type"])
-	e := NewExtractor(erw.ObjectStorage, json_object, job)
-	e.Extract(erw)
+
+	extract(q_client, obj)
+
 	log.Println("EXTRACT DONE", job.Args.Key)
 
 	return nil

@@ -3,7 +3,6 @@ package fetch
 import (
 	"log"
 
-	env "github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/queueing"
 	"github.com/jadudm/eight/pkg/extract"
 	"github.com/jadudm/eight/pkg/procs"
@@ -25,16 +24,6 @@ func Fetch(ch_req chan *FetchRequest) {
 	clean_c := queueing.NewRiver()
 	queueing.QueueingClient(clean_c, extract.ExtractRequest{})
 
-	// Set up the worker.
-	b, err := env.Env.GetBucket(env.WorkingObjectStore)
-
-	if err != nil {
-		log.Println("cannot get bucket")
-		log.Fatal(err)
-	}
-
-	s3_c := procs.NewKVS3(b)
-
 	work_c := queueing.NewRiver()
 	work_c = queueing.WorkingClient[FetchRequest, FetchWorker](
 		work_c, FetchRequest{},
@@ -43,7 +32,6 @@ func Fetch(ch_req chan *FetchRequest) {
 			CacheValChannel: ch_val,
 			CacheInsChannel: ch_ins,
 			EnqueueClient:   clean_c,
-			StorageClient:   s3_c,
 		})
 
 	if err := work_c.Client.Start(work_c.Context); err != nil {

@@ -8,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	q "github.com/jadudm/eight/internal/queueing"
 	"github.com/jadudm/eight/internal/util"
-	"github.com/jadudm/eight/pkg/pack"
+	kv "github.com/jadudm/eight/pkg/kv"
 )
 
 func scrape_sel(sel *goquery.Selection) string {
@@ -29,8 +30,12 @@ func scrape_sel(sel *goquery.Selection) string {
 	return content
 }
 
-func (e *Extractor) ExtractHtml(erw *ExtractRequestWorker) {
-	raw := e.Raw["raw"]
+func extractHtml(q_client *q.River, obj kv.Object) {
+	extract_bucket := kv.NewKV("extract")
+
+	jsonm := obj.GetJson()
+	raw := jsonm["raw"]
+
 	decoded, err := base64.URLEncoding.DecodeString(raw)
 	if err != nil {
 		log.Fatal(err)
@@ -40,7 +45,7 @@ func (e *Extractor) ExtractHtml(erw *ExtractRequestWorker) {
 	content := ""
 
 	// Delete the raw
-	delete(e.Raw, "raw")
+	delete(jsonm, "raw")
 
 	doc, err := goquery.NewDocumentFromReader(reader)
 	if err != nil {
@@ -58,15 +63,17 @@ func (e *Extractor) ExtractHtml(erw *ExtractRequestWorker) {
 	})
 
 	// Store everything
-	extracted_key := content_key(e.Raw["host"], e.Job.Args.Key, -1)
+	extracted_key := content_key(obj.GetValue("host"), obj.GetKey(), -1)
 	new := make(map[string]string, 0)
-	maps.Copy(new, e.Raw)
+	maps.Copy(new, jsonm)
 	new["content"] = util.RemoveStopwords(content)
-	e.Storage.Store(extracted_key, new)
+
+	extract_bucket.Store(extracted_key, new)
 
 	// Queue the next step
-	erw.EnqueueClient.InsertTx(pack.PackRequest{
-		Key: extracted_key,
+	q_client.InsertTx(q.GenericRequest{
+		Key:       obj.GetKey(),
+		QueueName: "pack",
 	})
 
 }

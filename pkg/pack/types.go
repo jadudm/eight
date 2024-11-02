@@ -3,7 +3,6 @@ package pack
 import (
 	"github.com/jadudm/eight/internal/queueing"
 	"github.com/jadudm/eight/internal/sqlite"
-	"github.com/jadudm/eight/pkg/procs"
 	"github.com/riverqueue/river"
 )
 
@@ -28,7 +27,6 @@ func (er PackRequest) InsertOpts() river.InsertOpts {
 type PackRequestJob = river.Job[PackRequest]
 
 type PackRequestWorker struct {
-	ObjectStorage procs.Storage
 	EnqueueClient *queueing.River
 	ChanPackages  chan Package
 	ChanFinalize  chan *sqlite.PackTable

@@ -87,8 +87,9 @@ func InitGlobalEnv() {
 		// https://github.com/spf13/viper/issues/1706
 		// https://github.com/spf13/viper/issues/1671
 		viper.AutomaticEnv()
-		viper.BindEnv("PORT")
 	}
+	// Grab the PORT in the cloud and locally from os.Getenv()
+	viper.BindEnv("PORT")
 
 	err := viper.ReadInConfig()
 
@@ -172,8 +173,9 @@ func (e *env) GetDatabaseUrl(name string) (string, error) {
 	return "", fmt.Errorf("ENV no db found with name %s", name)
 }
 
-func (e *env) GetBucket(name string) (Bucket, error) {
+func (e *env) GetObjectStore(name string) (Bucket, error) {
 	for _, b := range e.ObjectStores {
+		log.Println("checking ", b)
 		if b.Name == name {
 			return b, nil
 		}
