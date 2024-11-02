@@ -4,7 +4,6 @@ go 1.23.2
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.0
-	github.com/aws/aws-sdk-go v1.49.16
 	github.com/aws/aws-sdk-go-v2 v1.32.2
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.41
 	github.com/danielgtaylor/huma/v2 v2.24.0
@@ -41,7 +40,6 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect

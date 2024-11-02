@@ -84,6 +84,7 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 
 					err := store_storage.StoreFile(sqlite_filename, sqlite_filename)
 					if err != nil {
+						log.Println("PACK could not store to file", sqlite_filename)
 						log.Fatal(err)
 					}
 

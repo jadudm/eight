@@ -39,12 +39,14 @@ func (e *Walker) ExtractLinks() []*url.URL {
 	raw := e.JSON["raw"]
 	decoded, err := base64.URLEncoding.DecodeString(raw)
 	if err != nil {
+		log.Println("WALK cannot Base64 decode")
 		log.Fatal(err)
 	}
 	reader := bytes.NewReader(decoded)
 
 	doc, err := goquery.NewDocumentFromReader(reader)
 	if err != nil {
+		log.Println("WALK cannot convert to document")
 		log.Fatal(err)
 	}
 
@@ -134,6 +136,7 @@ func (wrw *WalkRequestWorker) Work(
 	JSON := obj.GetJson()
 
 	if err != nil {
+		log.Println("WALK cannot grab fetch object", job.Args.Key)
 		log.Fatal(err)
 	}
 	log.Println(JSON["path"], JSON["content-type"])

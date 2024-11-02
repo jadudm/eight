@@ -60,6 +60,7 @@ func ListDatabaseRequestHandler(ctx context.Context, input *LDBRequestInput) (*L
 
 	files, err := os.ReadDir(database_files_path)
 	if err != nil {
+		log.Println("SERVE could not get directory listing")
 		log.Fatal(err)
 	}
 

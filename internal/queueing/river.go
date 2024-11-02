@@ -40,6 +40,7 @@ func (r *River) initialize() {
 	connection_string, err := env.Env.GetDatabaseUrl(env.WorkingDatabase)
 
 	if err != nil {
+		log.Println("RIVER cannot find connection string for", env.WorkingDatabase)
 		log.Fatal(err)
 	}
 	pool, err := pgxpool.New(r.Context, connection_string)
@@ -54,12 +55,12 @@ func (r *River) initialize() {
 	// Run the migrations, always.
 	migrator, err := rivermigrate.New(rpgxv5.New(r.Pool), nil)
 	if err != nil {
-		log.Println("Could not create river migrator. Exiting.")
+		log.Println("RIVER Could not create river migrator. Exiting.")
 		log.Fatal(err)
 	}
 	_, err = migrator.Migrate(r.Context, rivermigrate.DirectionUp, &rivermigrate.MigrateOpts{})
 	if err != nil {
-		log.Println("Could not run river migrations. Exiting.")
+		log.Println("RIVER Could not run river migrations. Exiting.")
 		log.Fatal(err)
 	}
 
@@ -80,7 +81,7 @@ func QueueingClient(r *River, job river.JobArgs) *River {
 	})
 
 	if err != nil {
-		log.Println("Could not initialize river client")
+		log.Println("RIVER Could not initialize river client")
 		log.Fatal(err)
 	}
 

@@ -32,12 +32,13 @@ func main() {
 			host := chi.URLParam(r, "host")
 			rw.Header().Set("x-search-host", host)
 			data, err := os.ReadFile("index.html")
+			if err != nil {
+				log.Println("SERVE could not read index.html")
+				log.Fatal(err)
+			}
 			data = bytes.ReplaceAll(data, []byte("{HOST}"), []byte(host))
 			data = bytes.ReplaceAll(data, []byte("{PORT}"), []byte(fmt.Sprintf("%d", external_port)))
 
-			if err != nil {
-				log.Fatal(err)
-			}
 			rw.Write(data)
 		})
 	})

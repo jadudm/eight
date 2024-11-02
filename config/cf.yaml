@@ -17,6 +17,7 @@ EIGHT_SERVICES:
       parameters:
         extract_pdf: true
         extract_html: true
+        walkabout: true
     - name: "pack"
       credentials:
         port: 8888

@@ -21,6 +21,7 @@ func extractPdf(q_client *q.River, obj kv.Object) {
 	decoded, err := base64.URLEncoding.DecodeString(raw)
 
 	if err != nil {
+		log.Println("PDF cannot Base64 decode")
 		log.Fatal(err)
 	}
 

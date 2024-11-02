@@ -8,11 +8,41 @@ module "database" {
   rds_plan_name    = "micro-psql"
 }
 
-module "s3-private" {
+module "s3-private-extract" {
   source = "github.com/gsa-tts/terraform-cloudgov//s3?ref=v0.9.1"
   cf_org_name      = "sandbox-gsa"
   cf_space_name    = "matthew.jadud"
-  name             = "experiment-eight-s3"
+  name             = "extract"
+  s3_plan_name     = "basic"
+  recursive_delete = false
+  tags             = ["s3"]
+}
+
+module "s3-private-fetch" {
+  source = "github.com/gsa-tts/terraform-cloudgov//s3?ref=v0.9.1"
+  cf_org_name      = "sandbox-gsa"
+  cf_space_name    = "matthew.jadud"
+  name             = "fetch"
+  s3_plan_name     = "basic"
+  recursive_delete = false
+  tags             = ["s3"]
+}
+
+module "s3-private-pack" {
+  source = "github.com/gsa-tts/terraform-cloudgov//s3?ref=v0.9.1"
+  cf_org_name      = "sandbox-gsa"
+  cf_space_name    = "matthew.jadud"
+  name             = "pack"
+  s3_plan_name     = "basic"
+  recursive_delete = false
+  tags             = ["s3"]
+}
+
+module "s3-private-serve" {
+  source = "github.com/gsa-tts/terraform-cloudgov//s3?ref=v0.9.1"
+  cf_org_name      = "sandbox-gsa"
+  cf_space_name    = "matthew.jadud"
+  name             = "serve"
   s3_plan_name     = "basic"
   recursive_delete = false
   tags             = ["s3"]
@@ -57,7 +87,16 @@ resource "cloudfoundry_app" "fetch" {
   health_check_timeout = 180
   health_check_http_endpoint = "/heartbeat"
   service_binding {
-    service_instance = module.s3-private.bucket_id
+    service_instance = module.s3-private-extract.bucket_id
+  }
+    service_binding {
+    service_instance = module.s3-private-fetch.bucket_id
+  }
+    service_binding {
+    service_instance = module.s3-private-pack.bucket_id
+  }
+    service_binding {
+    service_instance = module.s3-private-serve.bucket_id
   }
 
   service_binding {
@@ -68,12 +107,8 @@ resource "cloudfoundry_app" "fetch" {
     route = cloudfoundry_route.serve_route.id
   }
 
-  # Use for the first deployment
   environment = {
     ENV = "SANDBOX"
-    # DISABLE_COLLECTSTATIC = 0
-    DJANGO_BASE_URL    = "https://experiment-eight.app.cloud.gov"
-    ALLOWED_HOSTS      = "experiment-eight.app.cloud.gov"
     REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt"
   }
 }

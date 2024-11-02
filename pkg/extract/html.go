@@ -38,6 +38,7 @@ func extractHtml(q_client *q.River, obj kv.Object) {
 
 	decoded, err := base64.URLEncoding.DecodeString(raw)
 	if err != nil {
+		log.Println("HTML cannot Base64 decode")
 		log.Fatal(err)
 	}
 	// Decoded contains a byte array of the raw HTML
@@ -49,6 +50,7 @@ func extractHtml(q_client *q.River, obj kv.Object) {
 
 	doc, err := goquery.NewDocumentFromReader(reader)
 	if err != nil {
+		log.Println("HTML cannot create new document")
 		log.Fatal(err)
 	}
 

@@ -25,6 +25,7 @@ func (srw *ServeRequestWorker) Work(
 	// the API should know that we can now serve the domain.
 	obj, err := fetch_storage.Get(job.Args.Key)
 	if err != nil {
+		log.Println("SERVE could not get object from fetch storage", job.Args.Key)
 		log.Fatal(err)
 	}
 	JSON := obj.GetJson()

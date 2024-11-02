@@ -12,6 +12,75 @@ import (
 
 var Env *env
 
+type Parameters map[string]interface{}
+
+// type Credentials struct {
+// 	// Common
+// 	Uri  string `mapstructure:"uri"`
+// 	Port string `mapstructure:"port"`
+// 	// S3
+// 	// AccessKeyId     string `mapstructure:"access_key_id"`
+// 	// SecretAccessKey string `mapstructure:"secret_access_key"`
+// 	// Region          string `mapstructure:"region"`
+// 	// Bucket          string `mapstructure:"bucket"`
+// 	// Endpoint        string `mapstructure:"endpoint"`
+// 	AccessKeyID        string `mapstructure:"access_key_id"`
+// 	AdditionalBuckets  []any  `mapstructure:"additional_buckets"`
+// 	Bucket             string `mapstructure:"bucket"`
+// 	Endpoint           string `mapstructure:"endpoint"`
+// 	FipsEndpoint       string `mapstructure:"fips_endpoint"`
+// 	InsecureSkipVerify bool   `mapstructure:"insecure_skip_verify"`
+// 	Region             string `mapstructure:"region"`
+// 	SecretAccessKey    string `mapstructure:"secret_access_key"`
+// 	// DB
+// 	DbName   string `mapstructure:"db_name"`
+// 	Host     string `mapstructure:"host"`
+// 	Name     string `mapstructure:"name"`
+// 	Password string `mapstructure:"password"`
+// 	Username string `mapstructure:"username"`
+// }
+
+// type Credentials struct {
+// 	AccessKeyID        string `json:"access_key_id"`
+// 	AdditionalBuckets  []any  `json:"additional_buckets"`
+// 	Bucket             string `json:"bucket"`
+// 	Endpoint           string `json:"endpoint"`
+// 	FipsEndpoint       string `json:"fips_endpoint"`
+// 	InsecureSkipVerify bool   `json:"insecure_skip_verify"`
+// 	Region             string `json:"region"`
+// 	SecretAccessKey    string `json:"secret_access_key"`
+// 	URI                string `json:"uri"`
+// }
+
+type Credentials interface {
+	CredentialString(string) string
+	CredentialInt(string) int64
+}
+
+type Service struct {
+	Name        string                 `mapstructure:"name"`
+	Credentials map[string]interface{} `mapstructure:"credentials"`
+	Parameters  Parameters             `mapstructure:"parameters"`
+}
+
+func (s *Service) CredentialString(key string) string {
+	if v, ok := s.Credentials[key]; ok {
+		return v.(string)
+	} else {
+		return fmt.Sprintf("NOVAL:%s", v)
+	}
+}
+
+func (s *Service) CredentialInt(key string) int64 {
+	if v, ok := s.Credentials[key]; ok {
+		return int64(v.(int))
+	} else {
+		return -1
+	}
+}
+
+type Database = Service
+type Bucket = Service
 type env struct {
 	AppEnv        string               `mapstructure:"APPENV"`
 	Home          string               `mapstructure:"HOME"`
@@ -31,36 +100,6 @@ type env struct {
 type container_env struct {
 	VcapServices map[string][]Service `mapstructure:"VCAP_SERVICES"`
 }
-
-type Credentials struct {
-	// Common
-	Uri  string `mapstructure:"uri"`
-	Port int    `mapstructure:"port"`
-	// S3
-	AccessKeyId     string `mapstructure:"access_key_id"`
-	SecretAccessKey string `mapstructure:"secret_access_key"`
-	Region          string `mapstructure:"region"`
-	Bucket          string `mapstructure:"bucket"`
-	Endpoint        string `mapstructure:"endpoint"`
-	// DB
-	DbName   string `mapstructure:"db_name"`
-	Host     string `mapstructure:"host"`
-	Name     string `mapstructure:"name"`
-	Password string `mapstructure:"password"`
-	Username string `mapstructure:"username"`
-}
-
-type Parameters map[string]interface{}
-
-type Service struct {
-	Name        string      `mapstructure:"name"`
-	Credentials Credentials `mapstructure:"credentials"`
-	Parameters  Parameters  `mapstructure:"parameters"`
-}
-
-type Database = Service
-
-type Bucket = Service
 
 var container_envs = []string{"DOCKER", "GH_ACTIONS"}
 var cf_envs = []string{"SANDBOX", "PREVIEW", "DEV", "STAGING", "PROD"}
@@ -121,7 +160,11 @@ func InitGlobalEnv() {
 		// CfEnv := cf_env{}
 		// viper.Unmarshal(&CfEnv)
 		new_vcs := make(map[string][]Service, 0)
-		json.Unmarshal([]byte(os.Getenv("VCAP_SERVICES")), &new_vcs)
+		err := json.Unmarshal([]byte(os.Getenv("VCAP_SERVICES")), &new_vcs)
+		if err != nil {
+			log.Println("ENV could not unmarshal VCAP_SERVICES to new")
+			log.Fatal(err)
+		}
 		Env.VcapServices = new_vcs
 	}
 
@@ -134,15 +177,15 @@ func InitGlobalEnv() {
 
 // FIXME: I later added `GetService`, and it is a cleaner
 // approach. Use that instead.
-func (e *env) GetServiceByName(category string, name string) (*Service, error) {
-	for _, s := range e.VcapServices[category] {
-		if s.Name == name {
-			return &s, nil
-		}
-	}
+// func (e *env) GetServiceByName(category string, name string) (*Service, error) {
+// 	for _, s := range e.VcapServices[category] {
+// 		if s.Name == name {
+// 			return &s, nil
+// 		}
+// 	}
 
-	return nil, fmt.Errorf("ENV no service in category %s found with name %s", category, name)
-}
+// 	return nil, fmt.Errorf("ENV no service in category %s found with name %s", category, name)
+// }
 
 // https://stackoverflow.com/questions/3582552/what-is-the-format-for-the-postgresql-connection-string-url
 // postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]
@@ -153,19 +196,15 @@ func (e *env) GetDatabaseUrl(name string) (string, error) {
 			if IsContainerEnv() {
 				params = "?sslmode=disable"
 				return fmt.Sprintf("postgresql://%s@%s:%d/%s%s",
-					db.Credentials.Username,
-					db.Credentials.Host,
-					db.Credentials.Port,
-					db.Credentials.DbName,
+					db.CredentialString("username"),
+					db.CredentialString("host"),
+					db.CredentialInt("port"),
+					db.CredentialString("db_name"),
 					params,
 				), nil
 			}
 			if IsCloudEnv() {
-				// FIXME: perhaps just use the URI in both places?
-				if db.Credentials.Port == 0 {
-					db.Credentials.Port = 5432
-				}
-				return db.Credentials.Uri, nil
+				return db.CredentialString("uri"), nil
 			}
 
 		}
@@ -175,7 +214,6 @@ func (e *env) GetDatabaseUrl(name string) (string, error) {
 
 func (e *env) GetObjectStore(name string) (Bucket, error) {
 	for _, b := range e.ObjectStores {
-		log.Println("checking ", b)
 		if b.Name == name {
 			return b, nil
 		}

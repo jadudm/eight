@@ -53,12 +53,14 @@ func fetch_page_content(job *FetchRequestJob) map[string]string {
 	log.Println(job.Args.Host, job.Args.Path)
 	res, err := http.Get(url.String())
 	if err != nil {
+		log.Println("FETCH cannot fetch", url.String())
 		log.Fatal(err)
 	}
 
 	content, err := io.ReadAll(res.Body)
 	res.Body.Close()
 	if err != nil {
+		log.Println("FETCH cannot read content")
 		log.Fatal(err)
 	}
 
