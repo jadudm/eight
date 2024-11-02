@@ -25,9 +25,9 @@ EIGHT_SERVICES:
       credentials:
         port: 8888
       parameters:
-        external_port: 80 # or 443?
+        external_port: 443
         external_scheme: https
         external_host: serve-experiment-eight.app.cloud.gov
-        static_files_path: /home/vcap/app/assets/static
+        static_files_path: /home/vcap/app/static
         database_files_path: /home/vcap/app/assets/databases
         results_per_query: 10

@@ -79,15 +79,11 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 					// This is still a bit of an MVP.
 
 					serve_storage := kv.NewKV("serve")
-					log.Println("FINALIZE streaming", sqlite_filename)
+					zap.L().Debug("finalize streaming",
+						zap.String("sqlite_filename", sqlite_filename))
 
 					tables[sqlite_filename].PrepForNetwork()
 
-					log.Println(serve_storage.Bucket)
-
-					// destination_filename := filepath.Join(
-					// 	serve_storage.Bucket.GetParamString("database_files_path"),
-					// 	sqlite_filename)
 					err := serve_storage.StoreFile(sqlite_filename, sqlite_filename)
 					if err != nil {
 						log.Println("PACK could not store to file", sqlite_filename)

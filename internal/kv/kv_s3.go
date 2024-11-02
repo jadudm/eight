@@ -48,10 +48,12 @@ func NewKV(bucket_name string) S3 {
 
 	// Grab a reference to our bucket from the config.
 	b, err := env.Env.GetObjectStore(bucket_name)
+
 	if err != nil {
-		zap.L().Error("could not get bucket from sync.Map", zap.String("bucket_name", bucket_name))
+		zap.L().Error("could not get bucket from config", zap.String("bucket_name", bucket_name))
 		os.Exit(1)
 	}
+
 	s3.Bucket = b
 
 	// Initialize minio client object.
@@ -132,10 +134,10 @@ func (s3 *S3) Get(key string) (Object, error) {
 		return nil, err
 	}
 
-	return newJsonObjectFromMinio(bucket_name, key, object), nil
+	return newJsonObjectFromMinio(bucket_name, key, object)
 }
 
-func newJsonObjectFromMinio(bucket_name string, key string, mo *minio.Object) Obj {
+func newJsonObjectFromMinio(bucket_name string, key string, mo *minio.Object) (Obj, error) {
 	raw, err := io.ReadAll(mo)
 	if err != nil {
 		log.Fatal("KV could not read object bytes ", bucket_name, " ", key)
@@ -153,7 +155,7 @@ func newJsonObjectFromMinio(bucket_name string, key string, mo *minio.Object) Ob
 			mime: mime,
 		},
 		value: jsonm,
-	}
+	}, nil
 }
 
 func (s3 *S3) GetFile(key string, dest_filename string) error {

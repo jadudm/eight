@@ -107,7 +107,7 @@ resource "cloudfoundry_app" "extract" {
   path                 = "zips/extract.zip"
   source_code_hash     = filesha256("zips/extract.zip")
   disk_quota           = 512
-  memory               = 64
+  memory               = 128
   instances            = 1
   strategy             = "rolling"
   timeout              = 200
@@ -145,7 +145,7 @@ resource "cloudfoundry_app" "pack" {
   path                 = "zips/pack.zip"
   source_code_hash     = filesha256("zips/pack.zip")
   disk_quota           = 512
-  memory               = 64
+  memory               = 128
   instances            = 1
   strategy             = "rolling"
   timeout              = 200
@@ -154,6 +154,9 @@ resource "cloudfoundry_app" "pack" {
   health_check_http_endpoint = "/heartbeat"
   service_binding {
     service_instance = module.s3-private-extract.bucket_id
+  }
+  service_binding {
+    service_instance = module.s3-private-serve.bucket_id
   }
 
   service_binding {
@@ -194,13 +197,12 @@ resource "cloudfoundry_app" "serve" {
   health_check_type    = "port"
   health_check_timeout = 180
   health_check_http_endpoint = "/heartbeat"
+    service_binding {
+    service_instance = module.s3-private-fetch.bucket_id
+  }
   service_binding {
     service_instance = module.s3-private-serve.bucket_id
   }
-  service_binding {
-    service_instance = module.s3-private-pack.bucket_id
-  }
-
   service_binding {
     service_instance = module.database.instance_id
   }

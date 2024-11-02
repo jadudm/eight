@@ -8,6 +8,7 @@ import (
 	"slices"
 
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var Env *env
@@ -198,6 +199,12 @@ func (e *env) GetDatabaseUrl(name string) (string, error) {
 
 func (e *env) GetObjectStore(name string) (Bucket, error) {
 	for _, b := range e.ObjectStores {
+		zap.L().Debug("GetObjectStore",
+			zap.String("bucket_name", b.Name),
+			zap.String("search_key", name),
+			zap.Bool("is_equal", b.Name == name),
+		)
+
 		if b.Name == name {
 			return b, nil
 		}
