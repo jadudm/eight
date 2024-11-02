@@ -31,3 +31,7 @@ terraform: build
 .PHONY: cloc
 cloc:
 	docker run --rm -v ${PWD}:/tmp aldanial/cloc --exclude-dir=assets .
+
+.PHONY: delete-all
+delete-all:
+	for app in fetch extract pack serve walk ; do cf delete -f ${app} ; done

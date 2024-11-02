@@ -20,7 +20,7 @@ func main() {
 
 	go fetch.Fetch(ch)
 
-	log.Println("Listening to the music of the spheres on", env.Env.Port)
+	log.Println("FETCH listening on", env.Env.Port)
 	// Local and Cloud should both get this from the environment.
 	http.ListenAndServe(":"+env.Env.Port, extended_api)
 

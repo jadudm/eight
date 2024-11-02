@@ -21,6 +21,7 @@ func main() {
 
 	go walk.Walk(ch)
 
+	log.Println("WALK listening on", env.Env.Port)
 	// Local and Cloud should both get this from the environment.
 	http.ListenAndServe(":"+env.Env.Port, extended_api)
 
