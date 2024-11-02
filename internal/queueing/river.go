@@ -105,8 +105,8 @@ func WorkingClient[T river.JobArgs, U river.Worker[T]](r *River, job T, worker r
 		// that were part-way done (say, in case of a crash).
 		FetchCooldown:        time.Duration(10 * time.Second),
 		FetchPollInterval:    time.Duration(30 * time.Second),
-		JobTimeout:           time.Duration(300 * time.Second),
-		RescueStuckJobsAfter: time.Duration(600 * time.Second),
+		JobTimeout:           time.Duration(60 * time.Second),
+		RescueStuckJobsAfter: time.Duration(360 * time.Second),
 	})
 	if err != nil {
 		panic(err)
