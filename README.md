@@ -80,21 +80,25 @@ This lets you watch the queues at [localhost:11111](http://localhost:11111) prov
 ## by the numbers
 
 ```
+ docker run --rm -v ${PWD}:/tmp aldanial/cloc --exclude-dir=assets --fullpath --not-match-d=terraform/zips/* --not-match-d=terraform/app/* --not-match-d=.terraform/* .
+```
+
+```
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              51            559            258           2520
-YAML                             4             15             53            404
-Markdown                        12            199              0            326
+Go                              55            613            287           2692
+YAML                             6             15             94            609
+Markdown                        12            199              0            327
 JSON                             1              0              0            199
-HTML                             1             21              5            171
+HTML                             1             30              0            164
 Text                             1              0              0            127
+make                             8             40              1            123
 Dockerfile                       6             26             15             61
-make                             8             20              0             61
 Python                           2              8              0             44
 Bourne Shell                     5             10              0             30
 SQL                              2              8             10             25
 -------------------------------------------------------------------------------
-SUM:                            93            866            341           3968
+SUM:                            99            949            407           4401
 -------------------------------------------------------------------------------
 ```

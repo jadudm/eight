@@ -7,7 +7,7 @@ import (
 
 type StatsInput struct{}
 type StatsResponse struct {
-	Stats map[string]int64
+	Stats map[string]int64 `json:"stats"`
 }
 
 // FIXME Switch to a concurrency-safe map library...
@@ -30,13 +30,19 @@ type AllStats struct {
 
 var all_the_stats *AllStats
 
-type HandlerFunType = func(ctx context.Context, input *StatsInput) (*StatsResponse, error)
+type HandlerFunType = func(ctx context.Context, input *StatsInput) (*StatsResponseBody, error)
+
+type StatsResponseBody struct {
+	Body *StatsResponse
+}
 
 func StatsHandler(service string) HandlerFunType {
-	return func(ctx context.Context, input *StatsInput) (*StatsResponse, error) {
+	return func(ctx context.Context, input *StatsInput) (*StatsResponseBody, error) {
 		// Does nothing if the stats are already initialized.
 		b := NewBaseStats(service)
-		return &StatsResponse{Stats: b.GetAll()}, nil
+		return &StatsResponseBody{
+			Body: &StatsResponse{Stats: b.GetAll()},
+		}, nil
 	}
 }
 
@@ -76,5 +82,13 @@ func (e *BaseStats) Increment(key string) {
 		e.Set(key, val.(int64)+1)
 	} else {
 		e.Set(key, 1)
+	}
+}
+
+func (e *BaseStats) Sum(key string, v int64) {
+	if val, ok := e.stats.Load(key); ok {
+		e.Set(key, val.(int64)+v)
+	} else {
+		e.Set(key, v)
 	}
 }

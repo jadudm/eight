@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"os"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
@@ -14,8 +15,9 @@ var FETCH_API_VERSION = "1.0.0"
 
 type FetchRequestInput struct {
 	Body struct {
-		Host string `json:"host" maxLength:"500" doc:"Host of resource"`
-		Path string `json:"path" maxLength:"1500" doc:"Path to resource"`
+		Host   string `json:"host" maxLength:"500" doc:"Host of resource"`
+		Path   string `json:"path" maxLength:"1500" doc:"Path to resource"`
+		ApiKey string `json:"api-key"`
 	}
 }
 
@@ -23,10 +25,12 @@ type RequestReturn func(ctx context.Context, input *FetchRequestInput) (*struct{
 
 func FetchRequestHandler(ch chan *fetch.FetchRequest) RequestReturn {
 	return func(ctx context.Context, input *FetchRequestInput) (*struct{}, error) {
-		cr := fetch.NewFetchRequest()
-		cr.Host = input.Body.Host
-		cr.Path = input.Body.Path
-		ch <- &cr
+		if input.Body.ApiKey == os.Getenv("API_KEY") {
+			cr := fetch.NewFetchRequest()
+			cr.Host = input.Body.Host
+			cr.Path = input.Body.Path
+			ch <- &cr
+		}
 		return nil, nil
 	}
 }

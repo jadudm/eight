@@ -93,6 +93,7 @@ resource "cloudfoundry_app" "fetch" {
 
   environment = {
     ENV = "SANDBOX"
+    API_KEY = "${var.api_key}"
     # REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt"
   }
 }
@@ -130,6 +131,7 @@ resource "cloudfoundry_app" "extract" {
 
   environment = {
     ENV = "SANDBOX"
+    API_KEY = "${var.api_key}"
     # REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt"
   }
 }
@@ -169,6 +171,7 @@ resource "cloudfoundry_app" "pack" {
 
   environment = {
     ENV = "SANDBOX"
+    API_KEY = "${var.api_key}"
     # REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt"
   }
 }
@@ -213,6 +216,7 @@ resource "cloudfoundry_app" "serve" {
 
   environment = {
     ENV = "SANDBOX"
+    API_KEY = "${var.api_key}"
     # REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt"
   }
 }
@@ -249,6 +253,7 @@ resource "cloudfoundry_app" "walk" {
 
   environment = {
     ENV = "SANDBOX"
+    API_KEY = "${var.api_key}"
     # REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt"
   }
 }

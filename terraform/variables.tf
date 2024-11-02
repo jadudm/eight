@@ -16,3 +16,7 @@ variable cf_env {
 variable cf_org_name {
   default = "matthew.jadud"
 }
+
+variable api_key {
+  sensitive = true
+}

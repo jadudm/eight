@@ -6,8 +6,10 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strings"
 	"time"
 
+	apistats "github.com/jadudm/eight/internal/api"
 	"github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/sqlite/schemas"
 	"github.com/jadudm/eight/pkg/serve"
@@ -45,6 +47,7 @@ func ServeHandler(ctx context.Context, input *ServeRequestInput) (*ServeResponse
 	start := time.Now()
 	host := input.Body.Host
 	terms := input.Body.Terms
+
 	s, _ := env.Env.GetUserService("serve")
 	database_files_path := s.GetParamString("database_files_path")
 	results_per_query := s.GetParamInt64("results_per_query")
@@ -73,6 +76,18 @@ func ServeHandler(ctx context.Context, input *ServeRequestInput) (*ServeResponse
 	})
 
 	duration := time.Since(start)
+
+	// Search accounting
+	stats := apistats.NewBaseStats("serve")
+	stats.Increment("_queries")
+	stats.Increment("_" + input.Body.Host)
+	stats.Sum("_total_query_time", duration.Nanoseconds())
+	stats.Set("_average_query_time", int64(stats.Get("_total_query_time")/stats.Get("_queries")))
+
+	// Count all the search terms? Why not!
+	for _, t := range strings.Split(terms, " ") {
+		stats.Increment(t)
+	}
 
 	if err != nil {
 		return &ServeResponseBody{

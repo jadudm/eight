@@ -20,15 +20,14 @@
                 <a href="javascript:void(0);">Parent link</a>
               </li>
             </ul>
-            
-            </nav>
-            <p class="margin-left-1" id="elapsed-time">
-            </p>
+
+          </nav>
+          <div id="stats"></div>
         </div>
         <main class="desktop:grid-col-9 usa-prose" id="main-content">
           <h1>Search some things</h1>
           <p class="usa-intro">
-            This is a search engine in 2500 lines of code.
+            This is a search engine in under 3000 lines of code.
           </p>
 
           <section aria-label="Big search component">
@@ -48,18 +47,10 @@
 
 
         function DoTheSearch() {
-          // https://stackoverflow.com/questions/24468459/sending-a-json-to-server-and-retrieving-a-json-in-return-without-jquery
-          // Sending and receiving data in JSON format using POST method
-          // http POST http://localhost:10004/search/cloud.gov terms="python cloud foundry developers"
-
-          // let site = document.getElementById("six-site");
           site_url = "{HOST}"
           console.log(site_url);
-          // https://stackoverflow.com/questions/11563638/how-do-i-get-the-value-of-text-input-field-using-javascript
-
           var post_url = "{SCHEME}://{HOST}:{PORT}/serve"
           console.log(post_url);
-
           var query = document.getElementById('six-search').value
           console.log(query);
 
@@ -82,30 +73,25 @@
             })
             .then(userData => {
               // Process the retrieved user data
-              console.log('User Data:', userData);
               document.getElementById("six-list").innerHTML = "";
 
               var list = document.getElementById('six-list');
               console.log(list);
 
-              time = userData.elapsed;
-              time = Math.round(time / 100000)
-              time = time / 10;
-              console.log(time)
-              timing_e = document.getElementById("elapsed-time")
-              timing_e.innerHTML = "Query time: " + time + " &mu;s"
+              var stats = document.getElementById('stats')
+              stats.innerHTML = "";
+              query_time = userData.elapsed;
+              statPara(stats, "Query time", nanoToMillis(query_time), "ms")
+              AllTheStats(stats)
 
               for (var k in userData.results) {
                 var r = userData.results[k];
                 if (r.path.length > 0) {
-                // console.log(k, userData.results[k]);
-                console.log(r)
-                console.log(r.snippet)
-                var entry = document.createElement('li');
-                var h = "<a href='https://{HOST}" + r.path + "' target='_blank'>" + r.path + "</a>"
-                h += "<br/>" + r.snippet
-                entry.innerHTML = h
-                list.appendChild(entry);
+                  var entry = document.createElement('li');
+                  var h = "<a href='https://{HOST}" + r.path + "' target='_blank'>" + r.path + "</a>"
+                  h += "<br/>" + r.snippet
+                  entry.innerHTML = h
+                  list.appendChild(entry);
 
                 }
               }
@@ -114,6 +100,69 @@
               console.error('Error:', error);
             });
         };
+
+        function statPara(stats, tag, value, units) {
+          var elapsedp = document.createElement('p')
+          elapsedp.classList.add("margin-left-1")
+          elapsedp.innerHTML = tag + ": " + value + " " + units
+          stats.appendChild(elapsedp)
+        }
+
+        function nanoToMillis(v) {
+          v = Math.round(v / 100000)
+          v = v / 10
+          return v
+        }
+
+        function AllTheStats(stats) {
+          site_url = "{HOST}"
+          var get_url = "{SCHEME}://{HOST}:{PORT}/stats"
+          fetch(get_url, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          })
+            .then(response => {
+
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(userData => {
+              data = userData["stats"]
+              statPara(stats, "Avg. query time", nanoToMillis(data["_average_query_time"]), "ms")
+              statPara(stats, "Queries", data["_{SEARCH_HOST}"], "")
+
+              top_queries = []
+              console.log("DATA", data)
+              for (const key in data) {
+                v = data[key]
+                if (key.startsWith("_")) {
+                  // skip
+                } else {
+                  top_queries.push(key)
+                }
+              }
+
+              if (top_queries != []) {
+                e = document.createElement('p')
+                b = document.createElement('b')
+                b.innerHTML = "Top queries"
+                e.appendChild(b)
+                stats.appendChild(e)
+
+                sorted = top_queries.sort().slice(0, 3)
+                for (const key of sorted) {
+                  statPara(stats, key, data[key], "")
+                }
+              }
+
+
+            })
+        }
+
 
         function HandleTheKeyboardClicks() {
           var key = window.event.keyCode;
