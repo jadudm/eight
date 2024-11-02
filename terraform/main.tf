@@ -57,20 +57,12 @@ data "cloudfoundry_space" "app_space" {
   name     = "matthew.jadud"
 }
 
-resource "cloudfoundry_route" "serve_route" {
+resource "cloudfoundry_route" "fetch_route" {
   space    = data.cloudfoundry_space.app_space.id
   domain   = data.cloudfoundry_domain.public.id
-  hostname = "experiment-eight"
+  hostname = "fetch-experiment-eight"
 }
 
-# prepare one for each app... says how to deploy each app
-# data "external" "fetch_zip" {
-#   program     = ["python3", "scripts/prepare_fetch.py"]
-#   working_dir = path.module
-#   query = {
-#     gitref = "refs/heads/main" # refs/where/branch
-#   }
-# }
 
 resource "cloudfoundry_app" "fetch" {
   name                 = "fetch"
@@ -95,7 +87,7 @@ resource "cloudfoundry_app" "fetch" {
   }
 
   routes {
-    route = cloudfoundry_route.serve_route.id
+    route = cloudfoundry_route.fetch_route.id
   }
 
   environment = {
@@ -128,9 +120,9 @@ resource "cloudfoundry_app" "extract" {
     service_instance = module.database.instance_id
   }
 
-  routes {
-    route = cloudfoundry_route.serve_route.id
-  }
+  # routes {
+  #   route = cloudfoundry_route.serve_route.id
+  # }
 
   environment = {
     ENV = "SANDBOX"
@@ -163,9 +155,9 @@ resource "cloudfoundry_app" "pack" {
     service_instance = module.database.instance_id
   }
 
-  routes {
-    route = cloudfoundry_route.serve_route.id
-  }
+  # routes {
+  #   route = cloudfoundry_route.serve_route.id
+  # }
 
   environment = {
     ENV = "SANDBOX"
@@ -173,6 +165,12 @@ resource "cloudfoundry_app" "pack" {
   }
 }
 
+
+resource "cloudfoundry_route" "serve_route" {
+  space    = data.cloudfoundry_space.app_space.id
+  domain   = data.cloudfoundry_domain.public.id
+  hostname = "serve-experiment-eight"
+}
 resource "cloudfoundry_app" "serve" {
   name                 = "serve"
   space                = data.cloudfoundry_space.app_space.id
@@ -230,9 +228,9 @@ resource "cloudfoundry_app" "walk" {
     service_instance = module.database.instance_id
   }
 
-  routes {
-    route = cloudfoundry_route.serve_route.id
-  }
+  # routes {
+  #   route = cloudfoundry_route.serve_route.id
+  # }
 
   environment = {
     ENV = "SANDBOX"
