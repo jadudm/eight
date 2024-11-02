@@ -153,7 +153,7 @@
                 e.appendChild(b)
                 stats.appendChild(e)
 
-                sorted = top_queries.sort().reverse().slice(0, 3)
+                sorted = top_queries.sort(function(a, b){return a-b;}).reverse().slice(0, 3)
                 for (const key of sorted) {
                   statPara(stats, key, data[key], "")
                 }
