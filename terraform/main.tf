@@ -1,3 +1,17 @@
+
+data "cloudfoundry_domain" "public" {
+  name = "app.cloud.gov"
+}
+
+data "cloudfoundry_space" "app_space" {
+  org_name = "sandbox-gsa"
+  name     = "matthew.jadud"
+}
+
+#################################################################
+# POSTGRES
+#################################################################
+
 module "database" {
   source = "github.com/gsa-tts/terraform-cloudgov//database?ref=v0.9.1"
   cf_org_name      = "sandbox-gsa"
@@ -8,6 +22,9 @@ module "database" {
   rds_plan_name    = "micro-psql"
 }
 
+#################################################################
+# S3 BUCKETS
+#################################################################
 module "s3-private-extract" {
   source = "github.com/gsa-tts/terraform-cloudgov//s3?ref=v0.9.1"
   cf_org_name      = "sandbox-gsa"
@@ -28,16 +45,6 @@ module "s3-private-fetch" {
   tags             = ["s3"]
 }
 
-module "s3-private-pack" {
-  source = "github.com/gsa-tts/terraform-cloudgov//s3?ref=v0.9.1"
-  cf_org_name      = "sandbox-gsa"
-  cf_space_name    = "matthew.jadud"
-  name             = "pack"
-  s3_plan_name     = "basic"
-  recursive_delete = false
-  tags             = ["s3"]
-}
-
 module "s3-private-serve" {
   source = "github.com/gsa-tts/terraform-cloudgov//s3?ref=v0.9.1"
   cf_org_name      = "sandbox-gsa"
@@ -48,22 +55,16 @@ module "s3-private-serve" {
   tags             = ["s3"]
 }
 
-data "cloudfoundry_domain" "public" {
-  name = "app.cloud.gov"
-}
 
-data "cloudfoundry_space" "app_space" {
-  org_name = "sandbox-gsa"
-  name     = "matthew.jadud"
-}
+#################################################################
+# FETCH
+#################################################################
 
 resource "cloudfoundry_route" "fetch_route" {
   space    = data.cloudfoundry_space.app_space.id
   domain   = data.cloudfoundry_domain.public.id
   hostname = "fetch-experiment-eight"
 }
-
-
 resource "cloudfoundry_app" "fetch" {
   name                 = "fetch"
   space                = data.cloudfoundry_space.app_space.id
@@ -96,6 +97,9 @@ resource "cloudfoundry_app" "fetch" {
   }
 }
 
+#################################################################
+# EXTRACT
+#################################################################
 resource "cloudfoundry_app" "extract" {
   name                 = "extract"
   space                = data.cloudfoundry_space.app_space.id
@@ -130,6 +134,10 @@ resource "cloudfoundry_app" "extract" {
   }
 }
 
+#################################################################
+# PACK
+#################################################################
+
 resource "cloudfoundry_app" "pack" {
   name                 = "pack"
   space                = data.cloudfoundry_space.app_space.id
@@ -147,9 +155,6 @@ resource "cloudfoundry_app" "pack" {
   service_binding {
     service_instance = module.s3-private-extract.bucket_id
   }
-  service_binding {
-    service_instance = module.s3-private-pack.bucket_id
-  }
 
   service_binding {
     service_instance = module.database.instance_id
@@ -165,6 +170,10 @@ resource "cloudfoundry_app" "pack" {
   }
 }
 
+
+#################################################################
+# SERVE
+#################################################################
 
 resource "cloudfoundry_route" "serve_route" {
   space    = data.cloudfoundry_space.app_space.id
@@ -205,6 +214,10 @@ resource "cloudfoundry_app" "serve" {
     # REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt"
   }
 }
+
+#################################################################
+# WALK
+#################################################################
 
 resource "cloudfoundry_app" "walk" {
   name                 = "walk"

@@ -7,8 +7,8 @@ import (
 	"log"
 
 	"github.com/jadudm/eight/internal/env"
+	kv "github.com/jadudm/eight/internal/kv"
 	q "github.com/jadudm/eight/internal/queueing"
-	kv "github.com/jadudm/eight/pkg/kv"
 )
 
 type ExtractionFunction func(map[string]string)
@@ -25,24 +25,19 @@ func content_key(host string, old_key string, page_number int) string {
 }
 
 func extract(the_client *q.River, obj kv.Object) {
-	cleaned_mime_type := obj.GetMimeType()
-
+	mime_type := obj.GetMimeType()
 	s, _ := env.Env.GetUserService("extract")
 
-	log.Println("EXTRACT processing MIME type ", cleaned_mime_type)
-	switch cleaned_mime_type {
+	// log.Println("EXTRACT processing MIME type ", mime_type)
+	switch mime_type {
 	case "text/html":
-		if s.GetParamBool("walkabout") {
-			the_client.InsertTx(q.GenericRequest{
-				Key:       obj.GetKey(),
-				QueueName: "walk",
-			})
-		}
 		if s.GetParamBool("extract_html") {
+			log.Println("EXTRACT HTML")
 			extractHtml(the_client, obj)
 		}
 	case "application/pdf":
 		if s.GetParamBool("extract_pdf") {
+			log.Println("EXTRACT PDF")
 			extractPdf(the_client, obj)
 		}
 	}
@@ -61,7 +56,7 @@ func (erw *ExtractRequestWorker) Work(
 	fetch_bucket := kv.NewKV("fetch")
 	obj, err := fetch_bucket.Get(job.Args.Key)
 	if err != nil {
-		log.Fatal("EXTRACT could not get get key from fetch bucket:", job.Args.Key)
+		log.Fatal("EXTRACT could not get get key from fetch bucket ", job.Args.Key)
 	}
 
 	extract(q_client, obj)

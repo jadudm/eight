@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/jadudm/eight/internal/api"
+	kv "github.com/jadudm/eight/internal/kv"
 	"github.com/jadudm/eight/internal/queueing"
 	sqlite "github.com/jadudm/eight/internal/sqlite"
-	kv "github.com/jadudm/eight/pkg/kv"
+	"go.uber.org/zap"
 )
 
 // The PackWriter provides concurrency protection for the
@@ -22,8 +23,7 @@ func PackWriter(chp <-chan Package, chf chan<- *sqlite.PackTable) {
 	for {
 		pkg := <-chp
 		host := pkg.JSON["host"]
-		// log.Println("PACKING", host, pkg.JSON["key"])
-		// Only create the connection once.
+
 		if _, ok := databases[host]; !ok {
 			table, err := sqlite.CreatePackTable(sqlite.SqliteFilename(host), pkg.JSON)
 			if err != nil {
@@ -57,7 +57,7 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 	tables := make(map[string]*sqlite.PackTable)
 
 	// https://dev.to/milktea02/misunderstanding-go-timers-and-channels-1jal
-	log.Println("FINALIZE starting timer...")
+	zap.L().Debug("finalize starting timer")
 	timeout := time.NewTimer(TIMEOUT_DURATION)
 
 	for {
@@ -71,18 +71,24 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 		case <-timeout.C:
 			// Every <timeout> seconds, we'll see if anyone has a clock that is greater,
 			// which will mean nothing has come through recently.
+			zap.L().Debug("finalize timeout")
 			for sqlite_filename, clock := range clocks {
 				if time.Since(clock) > TIMEOUT_DURATION {
 					//prw.EnqueueClient()
 					// FIXME: Just send it to S3 for now.
 					// This is still a bit of an MVP.
 
-					store_storage := kv.NewKV("store")
+					serve_storage := kv.NewKV("serve")
 					log.Println("FINALIZE streaming", sqlite_filename)
 
 					tables[sqlite_filename].PrepForNetwork()
 
-					err := store_storage.StoreFile(sqlite_filename, sqlite_filename)
+					log.Println(serve_storage.Bucket)
+
+					// destination_filename := filepath.Join(
+					// 	serve_storage.Bucket.GetParamString("database_files_path"),
+					// 	sqlite_filename)
+					err := serve_storage.StoreFile(sqlite_filename, sqlite_filename)
 					if err != nil {
 						log.Println("PACK could not store to file", sqlite_filename)
 						log.Fatal(err)
@@ -102,8 +108,9 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 
 				}
 			}
-			timeout.Reset(TIMEOUT_DURATION)
 		}
+		zap.L().Debug("finalize reset")
+		timeout.Reset(TIMEOUT_DURATION)
 	}
 }
 

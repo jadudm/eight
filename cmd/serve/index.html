@@ -19,39 +19,11 @@
               <li class="usa-sidenav__item">
                 <a href="javascript:void(0);">Parent link</a>
               </li>
-              <!--
-              <li class="usa-sidenav__item">
-                <a href="javascript:void(0);" class="usa-current">Current page</a>
-                <ul class="usa-sidenav__sublist">
-                  <li class="usa-sidenav__item">
-                    <a href="javascript:void(0);">Child link</a>
-                  </li>
-                  <li class="usa-sidenav__item">
-                    <a href="javascript:void(0);" class="usa-current">Child link</a>
-                    <ul class="usa-sidenav__sublist">
-                      <li class="usa-sidenav__item">
-                        <a href="javascript:void(0);">Grandchild link</a>
-                      </li>
-                      <li class="usa-sidenav__item">
-                        <a href="javascript:void(0);" class="usa-current">Grandchild link</a>
-                      </li>
-                      <li class="usa-sidenav__item">
-                        <a href="javascript:void(0);">Grandchild link</a>
-                      </li>
-                    </ul>
-                  </li>
-                  <li class="usa-sidenav__item">
-                    <a href="javascript:void(0);">Child link</a>
-                  </li>
-                </ul>
-              </li>
-              <li class="usa-sidenav__item">
-                <a href="javascript:void(0);">Parent link</a>
-              </li>
-
-              -->
             </ul>
-          </nav>
+            
+            </nav>
+            <p class="margin-left-1" id="elapsed-time">
+            </p>
         </div>
         <main class="desktop:grid-col-9 usa-prose" id="main-content">
           <h1>Search some things</h1>
@@ -85,13 +57,13 @@
           console.log(site_url);
           // https://stackoverflow.com/questions/11563638/how-do-i-get-the-value-of-text-input-field-using-javascript
 
-          var post_url = "http://localhost:{PORT}/serve"
+          var post_url = "{SCHEME}://localhost:{PORT}/serve"
           console.log(post_url);
 
           var query = document.getElementById('six-search').value
           console.log(query);
 
-          const data = { "terms": query, "host": "{HOST}" }
+          const data = { "terms": query, "host": "{SEARCH_HOST}" }
 
           fetch(post_url, {
             method: 'POST',
@@ -115,9 +87,18 @@
 
               var list = document.getElementById('six-list');
               console.log(list);
+
+              time = userData.elapsed;
+              time = Math.round(time / 100000)
+              time = time / 10;
+              console.log(time)
+              timing_e = document.getElementById("elapsed-time")
+              timing_e.innerHTML = "Query time: " + time + " &mu;s"
+
               for (var k in userData.results) {
-                // console.log(k, userData.results[k]);
                 var r = userData.results[k];
+                if (r.path.length > 0) {
+                // console.log(k, userData.results[k]);
                 console.log(r)
                 console.log(r.snippet)
                 var entry = document.createElement('li');
@@ -125,6 +106,8 @@
                 h += "<br/>" + r.snippet
                 entry.innerHTML = h
                 list.appendChild(entry);
+
+                }
               }
             })
             .catch(error => {
@@ -143,7 +126,7 @@
 
 
         function GetDatabases() {
-          var post_url = "http://localhost:{PORT}/databases"
+          var post_url = "{SCHEME}://{HOST}:{PORT}/databases"
           fetch(post_url, {
             method: 'GET',
             headers: {
@@ -169,7 +152,7 @@
                 }
                 var link = document.createElement('a')
                 link.innerHTML = db
-                link.setAttribute("href", "http://localhost:{PORT}/search/" + db)
+                link.setAttribute("href", "{SCHEME}://{HOST}:{PORT}/search/" + db)
                 entry.appendChild(link)
                 list.appendChild(entry);
                 console.log(entry);

@@ -12,45 +12,26 @@ import (
 
 var Env *env
 
-type Parameters map[string]interface{}
+// Constants for the attached services
+// These reach into the VCAP_SERVICES and are
+// defined in the Terraform.
+const WorkingObjectStore = "experiment-eight-s3"
+const WorkingDatabase = "experiment-eight-db"
 
-// type Credentials struct {
-// 	// Common
-// 	Uri  string `mapstructure:"uri"`
-// 	Port string `mapstructure:"port"`
-// 	// S3
-// 	// AccessKeyId     string `mapstructure:"access_key_id"`
-// 	// SecretAccessKey string `mapstructure:"secret_access_key"`
-// 	// Region          string `mapstructure:"region"`
-// 	// Bucket          string `mapstructure:"bucket"`
-// 	// Endpoint        string `mapstructure:"endpoint"`
-// 	AccessKeyID        string `mapstructure:"access_key_id"`
-// 	AdditionalBuckets  []any  `mapstructure:"additional_buckets"`
-// 	Bucket             string `mapstructure:"bucket"`
-// 	Endpoint           string `mapstructure:"endpoint"`
-// 	FipsEndpoint       string `mapstructure:"fips_endpoint"`
-// 	InsecureSkipVerify bool   `mapstructure:"insecure_skip_verify"`
-// 	Region             string `mapstructure:"region"`
-// 	SecretAccessKey    string `mapstructure:"secret_access_key"`
-// 	// DB
-// 	DbName   string `mapstructure:"db_name"`
-// 	Host     string `mapstructure:"host"`
-// 	Name     string `mapstructure:"name"`
-// 	Password string `mapstructure:"password"`
-// 	Username string `mapstructure:"username"`
-// }
+var validBucketNames = []string{
+	"extract",
+	"fetch",
+	"serve",
+}
 
-// type Credentials struct {
-// 	AccessKeyID        string `json:"access_key_id"`
-// 	AdditionalBuckets  []any  `json:"additional_buckets"`
-// 	Bucket             string `json:"bucket"`
-// 	Endpoint           string `json:"endpoint"`
-// 	FipsEndpoint       string `json:"fips_endpoint"`
-// 	InsecureSkipVerify bool   `json:"insecure_skip_verify"`
-// 	Region             string `json:"region"`
-// 	SecretAccessKey    string `json:"secret_access_key"`
-// 	URI                string `json:"uri"`
-// }
+func IsValidBucketName(name string) bool {
+	for _, v := range validBucketNames {
+		if name == v {
+			return true
+		}
+	}
+	return false
+}
 
 type Credentials interface {
 	CredentialString(string) string
@@ -60,7 +41,7 @@ type Credentials interface {
 type Service struct {
 	Name        string                 `mapstructure:"name"`
 	Credentials map[string]interface{} `mapstructure:"credentials"`
-	Parameters  Parameters             `mapstructure:"parameters"`
+	Parameters  map[string]interface{} `mapstructure:"parameters"`
 }
 
 func (s *Service) CredentialString(key string) string {
@@ -103,21 +84,27 @@ type container_env struct {
 
 var container_envs = []string{"DOCKER", "GH_ACTIONS"}
 var cf_envs = []string{"SANDBOX", "PREVIEW", "DEV", "STAGING", "PROD"}
-
-// Constants for the attached services
-// These reach into the VCAP_SERVICES and are
-// defined in the Terraform.
-const WorkingObjectStore = "experiment-eight-s3"
-const WorkingDatabase = "experiment-eight-db"
+var test_envs = []string{"LOCALHOST"}
 
 func InitGlobalEnv() {
 	Env = &env{}
+	SetupLogging()
+
 	viper.AddConfigPath("/home/vcap/app/config")
 	viper.SetConfigType("yaml")
+
+	// log.Println("ENV is", os.Getenv("ENV"))
+	// log.Println("ENV", IsContainerEnv(), IsLocalTestEnv(), IsCloudEnv())
 
 	if IsContainerEnv() {
 		log.Println("IsContainerEnv")
 		viper.SetConfigName("container")
+	}
+
+	if IsLocalTestEnv() {
+		log.Println("IsLocalTestEnv")
+		viper.AddConfigPath("../../config")
+		viper.SetConfigName("localhost")
 	}
 
 	if IsCloudEnv() {
@@ -127,13 +114,14 @@ func InitGlobalEnv() {
 		// https://github.com/spf13/viper/issues/1671
 		viper.AutomaticEnv()
 	}
+
 	// Grab the PORT in the cloud and locally from os.Getenv()
 	viper.BindEnv("PORT")
 
 	err := viper.ReadInConfig()
 
 	if err != nil {
-		log.Fatal("ENV cannot load in the config file")
+		log.Fatal("ENV cannot load in the config file ", viper.ConfigFileUsed())
 	}
 
 	err = viper.Unmarshal(&Env)
@@ -150,15 +138,13 @@ func InitGlobalEnv() {
 	// This means we don't have 1:1 locally *yet*, but
 	// if we unpack things right, we end up with one struct
 	// with everything in the rgiht places.
-	if IsContainerEnv() {
+	if IsContainerEnv() || IsLocalTestEnv() {
 		ContainerEnv := container_env{}
 		viper.Unmarshal(&ContainerEnv)
 		Env.VcapServices = ContainerEnv.VcapServices
 	}
 
 	if IsCloudEnv() {
-		// CfEnv := cf_env{}
-		// viper.Unmarshal(&CfEnv)
 		new_vcs := make(map[string][]Service, 0)
 		err := json.Unmarshal([]byte(os.Getenv("VCAP_SERVICES")), &new_vcs)
 		if err != nil {
@@ -173,19 +159,17 @@ func InitGlobalEnv() {
 	Env.Databases = Env.VcapServices["aws-rds"]
 	Env.UserServices = Env.EightServices["user-provided"]
 
+	// if IsLocalTestEnv() {
+	// 	log.Println("-----------", "Env", "-----------")
+	// 	log.Println(Env)
+	// 	log.Println("-----------", "ObjectStores", "-----------")
+	// 	log.Println(Env.ObjectStores)
+	// 	log.Println("-----------", "Databases", "-----------")
+	// // 	log.Println(Env.Databases)
+	// log.Println("-----------", "UserServices", "-----------")
+	// log.Println(Env.UserServices)
+	// }
 }
-
-// FIXME: I later added `GetService`, and it is a cleaner
-// approach. Use that instead.
-// func (e *env) GetServiceByName(category string, name string) (*Service, error) {
-// 	for _, s := range e.VcapServices[category] {
-// 		if s.Name == name {
-// 			return &s, nil
-// 		}
-// 	}
-
-// 	return nil, fmt.Errorf("ENV no service in category %s found with name %s", category, name)
-// }
 
 // https://stackoverflow.com/questions/3582552/what-is-the-format-for-the-postgresql-connection-string-url
 // postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]
@@ -193,7 +177,7 @@ func (e *env) GetDatabaseUrl(name string) (string, error) {
 	for _, db := range e.Databases {
 		if db.Name == name {
 			params := ""
-			if IsContainerEnv() {
+			if IsContainerEnv() || IsLocalTestEnv() {
 				params = "?sslmode=disable"
 				return fmt.Sprintf("postgresql://%s@%s:%d/%s%s",
 					db.CredentialString("username"),
@@ -234,35 +218,53 @@ func IsContainerEnv() bool {
 	return slices.Contains(container_envs, os.Getenv("ENV"))
 }
 
+func IsLocalTestEnv() bool {
+	return slices.Contains(test_envs, os.Getenv("ENV"))
+}
+
 func IsCloudEnv() bool {
 	return slices.Contains(cf_envs, os.Getenv("ENV"))
 }
 
 func (s *Service) GetParamInt64(key string) int64 {
-	if param_val, ok := s.Parameters[key]; ok {
-		return int64(param_val.(int))
-	} else {
-		log.Fatalf("ENV no int param found for %s", key)
-		return 0
+	for _, global_s := range Env.UserServices {
+		if s.Name == global_s.Name {
+			if global_param_val, ok := global_s.Parameters[key]; ok {
+				return int64(global_param_val.(int))
+			} else {
+				log.Fatalf("ENV no int64 param found for %s", key)
+			}
+		}
 	}
+	return -1
 }
 
 func (s *Service) GetParamString(key string) string {
-	if param_val, ok := s.Parameters[key]; ok {
-		return param_val.(string)
-	} else {
-		log.Fatalf("ENV no string param found for %s", key)
-		return ""
+
+	for _, global_s := range Env.UserServices {
+		if s.Name == global_s.Name {
+			if global_param_val, ok := global_s.Parameters[key]; ok {
+				return global_param_val.(string)
+			} else {
+				log.Fatalf("ENV no string param found for %s", key)
+			}
+		}
 	}
+
+	return fmt.Sprintf("NO VALUE FOUND FOR KEY: [%s, %s]", s.Name, key)
 }
 
 func (s *Service) GetParamBool(key string) bool {
-	if param_val, ok := s.Parameters[key]; ok {
-		return param_val.(bool)
-	} else {
-		log.Fatalf("ENV no bool param found for %s", key)
-		return false
+	for _, global_s := range Env.UserServices {
+		if s.Name == global_s.Name {
+			if global_param_val, ok := global_s.Parameters[key]; ok {
+				return global_param_val.(bool)
+			} else {
+				log.Fatalf("ENV no bool param found for %s", key)
+			}
+		}
 	}
+	return false
 }
 
 func (s *Service) AsJson() string {

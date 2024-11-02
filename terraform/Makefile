@@ -30,6 +30,7 @@ extract: app
 	cd app ; zip -r -X ../zips/extract.zip . \
 		-x assets/databases/* \
 		-x assets/static.zip \
+		-x assetts/static/* \
 		-x terraform/*
 
 .PHONY: fetch
@@ -41,6 +42,7 @@ fetch: app
 	cd app ; zip -r -X ../zips/fetch.zip . \
 		-x assets/databases/* \
 		-x assets/static.zip \
+		-x assetts/static/* \
 		-x terraform/*
 
 .PHONY: pack
@@ -52,6 +54,7 @@ pack: app
 	cd app ; zip -r -X ../zips/pack.zip . \
 		-x assets/databases/* \
 		-x assets/static.zip \
+		-x assetts/static/* \
 		-x terraform/*
 
 .PHONY: serve
@@ -74,6 +77,7 @@ walk: app
 	cd app ; zip -r -X ../zips/walk.zip . \
 		-x assets/databases/* \
 		-x assets/static.zip \
+		-x assetts/static/* \
 		-x terraform/*
 
 .PHONY: plan

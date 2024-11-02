@@ -6,8 +6,8 @@ import (
 	"os"
 
 	env "github.com/jadudm/eight/internal/env"
+	kv "github.com/jadudm/eight/internal/kv"
 	"github.com/jadudm/eight/internal/sqlite"
-	kv "github.com/jadudm/eight/pkg/kv"
 )
 
 // The worker just grabs things off the queue and

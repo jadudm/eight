@@ -59,7 +59,20 @@ services:
       retries: 5    
     volumes:
       - minio-data:/data
-      
+
+  #-----------------------------------------------------
+  # pgweb
+  #-----------------------------------------------------
+  pgweb:
+    image: sosedoff/pgweb
+    container_name: pgweb 
+    restart: always
+    ports: 
+      - 22222:8081
+    environment:
+      PGWEB_DATABASE_URL: postgresql://postgres@queue-db:5432/postgres?sslmode=disable
+    depends_on:
+      - queue-db
 
 volumes:
   queue-data:

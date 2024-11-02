@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	kv "github.com/jadudm/eight/internal/kv"
 	q "github.com/jadudm/eight/internal/queueing"
 	"github.com/jadudm/eight/internal/util"
-	kv "github.com/jadudm/eight/pkg/kv"
 )
 
 func scrape_sel(sel *goquery.Selection) string {
@@ -65,16 +65,23 @@ func extractHtml(q_client *q.River, obj kv.Object) {
 	})
 
 	// Store everything
-	extracted_key := content_key(obj.GetValue("host"), obj.GetKey(), -1)
+	extracted_key := util.CreateS3Key(obj.GetValue("host"), obj.GetValue("path")).Render()
 	new := make(map[string]string, 0)
 	maps.Copy(new, jsonm)
 	new["content"] = util.RemoveStopwords(content)
 
 	extract_bucket.Store(extracted_key, new)
 
+	log.Println("EXTRACT queue job for walking", extracted_key)
+	q_client.InsertTx(q.GenericRequest{
+		Key:       extracted_key,
+		QueueName: "walk",
+	})
+
+	log.Println("EXTRACT queue job for packing", extracted_key)
 	// Queue the next step
 	q_client.InsertTx(q.GenericRequest{
-		Key:       obj.GetKey(),
+		Key:       extracted_key,
 		QueueName: "pack",
 	})
 

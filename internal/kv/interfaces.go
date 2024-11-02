@@ -1,11 +1,10 @@
-package procs
+package kv
 
 import (
 	"encoding/json"
-	"io"
 	"log"
 
-	"github.com/minio/minio-go/v7"
+	"github.com/jadudm/eight/internal/util"
 )
 
 type JSON map[string]string
@@ -37,27 +36,6 @@ type Obj struct {
 	// bytes []byte
 }
 
-func newJsonObjectFromMinio(key string, mo *minio.Object) Obj {
-	raw, err := io.ReadAll(mo)
-	if err != nil {
-		log.Fatal("KV could not read object bytes")
-	}
-	jsonm := make(JSON)
-	json.Unmarshal(raw, &jsonm)
-	mime := "octet/binary"
-	if v, ok := jsonm["content-type"]; ok {
-		mime = v
-	}
-	return Obj{
-		info: &ObjInfo{
-			key:  key,
-			size: int64(len(raw)),
-			mime: mime,
-		},
-		value: jsonm,
-	}
-}
-
 func NewObject(key string, value JSON) *Obj {
 	b, err := json.Marshal(value)
 	if err != nil {
@@ -69,7 +47,8 @@ func NewObject(key string, value JSON) *Obj {
 	if good, ok := value["content-type"]; !ok {
 		mime = "octet/binary"
 	} else {
-		mime = good
+		// Clean the mime type before we instert it.
+		mime = util.CleanMimeType(good)
 	}
 
 	return &Obj{

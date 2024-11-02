@@ -1,4 +1,4 @@
-package procs
+package kv
 
 import (
 	"bytes"
@@ -12,9 +12,14 @@ import (
 
 	minio "github.com/minio/minio-go/v7"
 	minio_credentials "github.com/minio/minio-go/v7/pkg/credentials"
+	"go.uber.org/zap"
 
 	"github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/util"
 )
+
+// Only open any given bucket once.
+var buckets sync.Map
 
 type S3 struct {
 	Bucket      env.Bucket
@@ -27,13 +32,16 @@ type Storage interface {
 	Get(string) (Object, error)
 }
 
-// Only open any given bucket once.
-var buckets sync.Map
-
-func NewKV(bucket_name string) *S3 {
+func NewKV(bucket_name string) S3 {
+	if !env.IsValidBucketName(bucket_name) {
+		log.Fatal("KV INVALID BUCKET NAME ", bucket_name)
+	}
 
 	if s3, ok := buckets.Load(bucket_name); ok {
-		return s3.(*S3)
+		zap.L().Debug("in the sync map", zap.String("bucket_name", bucket_name))
+		return s3.(S3)
+	} else {
+		zap.L().Debug("not in the sync map", zap.String("bucket_name", bucket_name))
 	}
 
 	s3 := S3{}
@@ -41,14 +49,15 @@ func NewKV(bucket_name string) *S3 {
 	// Grab a reference to our bucket from the config.
 	b, err := env.Env.GetObjectStore(bucket_name)
 	if err != nil {
-		log.Fatal("ENV could not get bucket of name ", bucket_name)
+		zap.L().Error("could not get bucket from sync.Map", zap.String("bucket_name", bucket_name))
+		os.Exit(1)
 	}
 	s3.Bucket = b
 
 	// Initialize minio client object.
 	useSSL := true
-	if env.IsContainerEnv() {
-		log.Println("ENV disabling SSL in containerized environment")
+	if env.IsContainerEnv() || env.IsLocalTestEnv() {
+		// log.Println("ENV disabling SSL in containerized environment")
 		useSSL = false
 	}
 
@@ -73,8 +82,12 @@ func NewKV(bucket_name string) *S3 {
 	}
 
 	if found {
-		log.Println("KV found pre-existing bucket", bucket_name)
-		return &s3
+		zap.L().Debug("pre-existing bucket in S3",
+			zap.String("bucket_name", bucket_name))
+		// Make sure to insert the metadata into the sync.Map
+		// when we find a bucket that already exists.
+		buckets.Store(bucket_name, s3)
+		return s3
 	}
 
 	if env.IsContainerEnv() {
@@ -96,24 +109,51 @@ func NewKV(bucket_name string) *S3 {
 
 	buckets.Store(bucket_name, &s3)
 
-	return &s3
+	loaded, _ := buckets.Load(bucket_name)
+	log.Println("KV bucket at creation time", bucket_name, loaded)
+	return s3
 }
 
 // GetObject(ctx context.Context, bucketName, objectName string, opts GetObjectOptions) (*Object, error)
 func (s3 *S3) Get(key string) (Object, error) {
 	ctx := context.Background()
+	bucket_name := s3.Bucket.CredentialString("bucket")
+
+	// The object has a channel interface that we have to empty.
 	object, err := s3.MinioClient.GetObject(
 		ctx,
-		s3.Bucket.CredentialString("bucket"),
+		bucket_name,
 		key,
 		minio.GetObjectOptions{})
 
 	if err != nil {
-		fmt.Println(err)
+		log.Println(s3.Bucket.CredentialString("bucket"), key)
+		log.Println(err)
 		return nil, err
 	}
 
-	return newJsonObjectFromMinio(key, object), nil
+	return newJsonObjectFromMinio(bucket_name, key, object), nil
+}
+
+func newJsonObjectFromMinio(bucket_name string, key string, mo *minio.Object) Obj {
+	raw, err := io.ReadAll(mo)
+	if err != nil {
+		log.Fatal("KV could not read object bytes ", bucket_name, " ", key)
+	}
+	jsonm := make(JSON)
+	json.Unmarshal(raw, &jsonm)
+	mime := "octet/binary"
+	if v, ok := jsonm["content-type"]; ok {
+		mime = util.CleanMimeType(v)
+	}
+	return Obj{
+		info: &ObjInfo{
+			key:  key,
+			size: int64(len(raw)),
+			mime: mime,
+		},
+		value: jsonm,
+	}
 }
 
 func (s3 *S3) GetFile(key string, dest_filename string) error {
@@ -163,6 +203,7 @@ func store(s3 *S3, key string, size int64, jsonm JSON, reader io.Reader) error {
 	if v, ok := jsonm["content-type"]; ok {
 		mime = v
 	}
+
 	ctx := context.Background()
 	log.Println("KV store", s3.Bucket.Name, key, size)
 	_, err := s3.MinioClient.PutObject(
@@ -173,7 +214,9 @@ func store(s3 *S3, key string, size int64, jsonm JSON, reader io.Reader) error {
 		size,
 		minio.PutObjectOptions{
 			ContentType: mime,
-			PartSize:    5000000, // FIXME in bytes?
+			// This seems to set the *minimum* partsize for multipart uploads.
+			// Which... makes writing JSON objects impossible.
+			// PartSize:    5000000
 		},
 	)
 	if err != nil {
@@ -189,10 +232,10 @@ func (s3 *S3) Store(key string, jsonm JSON) error {
 	return store(s3, key, size, jsonm, reader)
 }
 
-func (s3 *S3) StoreFile(key string, filename string) error {
-	reader, err := os.Open(filename)
+func (s3 *S3) StoreFile(key string, destination_filename string) error {
+	reader, err := os.Open(destination_filename)
 	if err != nil {
-		log.Fatal("KV cannot open file", filename)
+		log.Fatal("KV cannot open file", destination_filename)
 	}
 	fi, err := reader.Stat()
 	if err != nil {

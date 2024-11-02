@@ -129,6 +129,7 @@ services:
       start_period: 60s
     environment:
       ENV: "DOCKER"
+      DEBUG_LEVEL: "debug"
       PORT: 8888
     restart: always
 
@@ -162,6 +163,7 @@ services:
       start_period: 60s
     environment:
       ENV: "DOCKER"
+      DEBUG_LEVEL: "debug"
       PORT: 8888
     restart: always
 
@@ -225,6 +227,20 @@ services:
     volumes:
       - minio-data:/data
       
+  #-----------------------------------------------------
+  # pgweb
+  #-----------------------------------------------------
+  pgweb:
+    image: sosedoff/pgweb
+    container_name: pgweb 
+    restart: always
+    ports: 
+      - 22222:8081
+    environment:
+      PGWEB_DATABASE_URL: postgresql://postgres@queue-db:5432/postgres?sslmode=disable
+    depends_on:
+      queue-db:
+        condition: service_healthy
 
 volumes:
   queue-data:

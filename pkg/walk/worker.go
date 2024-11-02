@@ -10,9 +10,9 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/jadudm/eight/internal/api"
+	kv "github.com/jadudm/eight/internal/kv"
 	"github.com/jadudm/eight/internal/util"
 	"github.com/jadudm/eight/pkg/fetch"
-	kv "github.com/jadudm/eight/pkg/kv"
 )
 
 type Walker struct {
@@ -25,7 +25,7 @@ type Walker struct {
 type WalkionFunction func(map[string]string)
 
 func (e *Walker) Walk() {
-	cleaned_mime_type := util.CleanedMimeType(e.JSON["content-type"])
+	cleaned_mime_type := util.CleanMimeType(e.JSON["content-type"])
 	switch cleaned_mime_type {
 	case "text/html":
 		e.WalkHTML()

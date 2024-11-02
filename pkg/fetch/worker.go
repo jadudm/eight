@@ -14,17 +14,13 @@ import (
 	"time"
 
 	"github.com/jadudm/eight/internal/env"
+	kv "github.com/jadudm/eight/internal/kv"
+	"github.com/jadudm/eight/internal/util"
 	"github.com/jadudm/eight/pkg/extract"
-	kv "github.com/jadudm/eight/pkg/kv"
 )
 
 func job_to_string(job *FetchRequestJob) string {
 	return fmt.Sprintf("%s/%s", job.Args.Host, job.Args.Path)
-}
-
-func job_to_s3_key(job *FetchRequestJob) string {
-	sha1 := sha1.Sum([]byte(job.Args.Host + job.Args.Path))
-	return fmt.Sprintf("%s/%x.json", job.Args.Host, sha1)
 }
 
 var last_hit sync.Map
@@ -42,7 +38,7 @@ func fetch_page_content(job *FetchRequestJob) map[string]string {
 	sleepy_time := time.Duration(millis * int64(time.Millisecond))
 	if t, ok := last_hit.Load(job.Args.Host); ok {
 		if time.Since(t.(time.Time)) < sleepy_time {
-			log.Println("FETCH sleeping for", job.Args.Host)
+			// log.Println("FETCH sleeping for", job.Args.Host)
 			time.Sleep(sleepy_time)
 		}
 	}
@@ -108,12 +104,14 @@ func (crw *FetchRequestWorker) Work(
 	// If it is not cached, we have work to do.
 	// path, err := store_to_s3(crw.Bucket, job.Args.Host, job.Args.Path)
 	page_json := fetch_page_content(job)
-	page_json["key"] = job_to_s3_key(job)
-	err := fetch_storage.Store(job_to_s3_key(job), page_json)
+
+	key := util.CreateS3Key(job.Args.Host, job.Args.Path).Render()
+	page_json["key"] = key
+	err := fetch_storage.Store(key, page_json)
 
 	// We get an error if we can't write to S3
 	if err != nil {
-		log.Println("could not store k/v")
+		log.Println("FETCH could not store k/v", key)
 		log.Println(err)
 		return err
 	}
@@ -124,7 +122,7 @@ func (crw *FetchRequestWorker) Work(
 	}
 
 	crw.EnqueueClient.InsertTx(extract.ExtractRequest{
-		Key: job_to_s3_key(job),
+		Key: key,
 	})
 
 	return nil

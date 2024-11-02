@@ -1,8 +1,8 @@
 package extract
 
 import (
+	kv "github.com/jadudm/eight/internal/kv"
 	"github.com/jadudm/eight/internal/queueing"
-	kv "github.com/jadudm/eight/pkg/kv"
 	"github.com/riverqueue/river"
 )
 

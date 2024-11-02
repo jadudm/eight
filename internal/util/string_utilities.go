@@ -25,7 +25,7 @@ var mime_types = []string{
 	"application/x-sqlite3",
 }
 
-func CleanedMimeType(mime string) string {
+func CleanMimeType(mime string) string {
 	for _, m := range mime_types {
 		if strings.Contains(mime, m) {
 			return m

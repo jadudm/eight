@@ -7,8 +7,8 @@ import (
 
 	_ "modernc.org/sqlite"
 
+	kv "github.com/jadudm/eight/internal/kv"
 	schemas "github.com/jadudm/eight/internal/sqlite/schemas"
-	kv "github.com/jadudm/eight/pkg/kv"
 )
 
 type Package struct {
@@ -24,9 +24,9 @@ func (prw *PackRequestWorker) Work(
 ) error {
 	log.Println("PACK", job.Args.Key)
 
-	pack_storage := kv.NewKV("pack")
+	extract_storage := kv.NewKV("extract")
 
-	obj, err := pack_storage.Get(job.Args.Key)
+	obj, err := extract_storage.Get(job.Args.Key)
 	if err != nil {
 		log.Fatal("PACK cannot get obj from S3", job.Args.Key)
 	}

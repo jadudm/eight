@@ -11,16 +11,24 @@ import (
 	"github.com/jadudm/eight/internal/api"
 	"github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/pkg/serve"
+	"go.uber.org/zap"
 )
 
 func main() {
 	env.InitGlobalEnv()
 
 	s, _ := env.Env.GetUserService("serve")
-	external_port := s.GetParamInt64("external_port")
 	static_files_path := s.GetParamString("static_files_path")
+	external_scheme := s.GetParamString("external_scheme")
+	external_host := s.GetParamString("external_host")
+	external_port := s.GetParamInt64("external_port")
 
 	log.Println("environment initialized")
+	zap.L().Info("serve environment",
+		zap.String("static_files_path", static_files_path),
+		zap.String("external_host", external_host),
+		zap.Int64("external_port", external_port),
+	)
 
 	ch := make(chan *serve.ServeRequest)
 
@@ -36,7 +44,10 @@ func main() {
 				log.Println("SERVE could not read index.html")
 				log.Fatal(err)
 			}
-			data = bytes.ReplaceAll(data, []byte("{HOST}"), []byte(host))
+			data = bytes.ReplaceAll(data, []byte("{SCHEME}"), []byte(external_scheme))
+			data = bytes.ReplaceAll(data, []byte("{HOST}"), []byte(external_host))
+			data = bytes.ReplaceAll(data, []byte("{SEARCH_HOST}"), []byte(host))
+
 			data = bytes.ReplaceAll(data, []byte("{PORT}"), []byte(fmt.Sprintf("%d", external_port)))
 
 			rw.Write(data)
