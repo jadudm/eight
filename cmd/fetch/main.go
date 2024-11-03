@@ -16,9 +16,12 @@ var polite_sleep_milliseconds time.Duration
 func main() {
 	env.InitGlobalEnv()
 	InitializeQueues()
+	if fetchPool == nil {
+		zap.L().Error("DBPOOL IS NIL")
+	}
 	InitializeStorage()
 
-	routers := InitializeAPI()
+	engine := InitializeAPI()
 	log.Println("environment initialized")
 
 	// Init a cache for the workers
@@ -35,6 +38,6 @@ func main() {
 	zap.L().Info("listening to the music of the spheres",
 		zap.String("port", env.Env.Port))
 	// Local and Cloud should both get this from the environment.
-	http.ListenAndServe(":"+env.Env.Port, routers)
+	http.ListenAndServe(":"+env.Env.Port, engine)
 
 }

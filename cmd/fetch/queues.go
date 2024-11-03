@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	common "github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/env"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
@@ -15,15 +16,19 @@ import (
 
 // GLOBAL TO THE APP
 // One pool of connections for River.
-var dbPool *pgxpool.Pool
 
 // The work client, doing the work of `fetch`
+var fetchPool *pgxpool.Pool
 var fetchClient *river.Client[pgx.Tx]
+var extractPool *pgxpool.Pool
 var extractClient *river.Client[pgx.Tx]
 
-// The enqueue client, for the API and others to enqueue work
+type FetchWorker struct {
+	river.WorkerDefaults[common.FetchArgs]
+}
 
 func InitializeQueues() {
+	//ctx, pool, workers := common.CommonQueueInit()
 	ctx := context.Background()
 
 	// Establsih the database
@@ -35,18 +40,27 @@ func InitializeQueues() {
 		os.Exit(1)
 	}
 
-	dbp, err := pgxpool.New(ctx, database_url)
+	pool, err := pgxpool.New(ctx, database_url)
 	if err != nil {
 		zap.L().Error("could not establish database pool; exiting",
 			zap.String("database_url", database_url),
 		)
 		os.Exit(1)
 	}
-	// We want this pool for the workers.
-	dbPool = dbp
+	fetchPool = pool
+
+	pool, err = pgxpool.New(ctx, database_url)
+	if err != nil {
+		zap.L().Error("could not establish database pool; exiting",
+			zap.String("database_url", database_url),
+		)
+		os.Exit(1)
+	}
+	extractPool = pool
 
 	// Create a pool of workers
 	workers := river.NewWorkers()
+	// Essentially adds a worker "type" to the work engine.
 	river.AddWorker(workers, &FetchWorker{})
 
 	// Grab the number of workers from the config.
@@ -58,9 +72,9 @@ func InitializeQueues() {
 	}
 
 	// Work client
-	wC, err := river.NewClient(riverpgxv5.New(dbPool), &river.Config{
+	fetchClient, err = river.NewClient(riverpgxv5.New(fetchPool), &river.Config{
 		Queues: map[string]river.QueueConfig{
-			river.QueueDefault: {MaxWorkers: int(fetch_service.GetParamInt64("workers"))},
+			"fetch": {MaxWorkers: int(fetch_service.GetParamInt64("workers"))},
 		},
 		Workers: workers,
 	})
@@ -71,19 +85,16 @@ func InitializeQueues() {
 		os.Exit(1)
 	}
 
-	// Start the work clients
-	if err := wC.Start(ctx); err != nil {
-		zap.L().Error("workers are not the means of production. exiting.")
-		os.Exit(42)
-	}
-
 	// Insert-only client to `extract`
-	eC, err := river.NewClient(riverpgxv5.New(dbPool), &river.Config{})
+	extractClient, err = river.NewClient(riverpgxv5.New(extractPool), &river.Config{})
 	if err != nil {
 		zap.L().Error("could not establish insert-only client")
 		os.Exit(1)
 	}
 
-	fetchClient = wC
-	extractClient = eC
+	// Start the work clients
+	if err := fetchClient.Start(ctx); err != nil {
+		zap.L().Error("workers are not the means of production. exiting.")
+		os.Exit(42)
+	}
 }

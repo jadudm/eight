@@ -12,27 +12,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
+	common "github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/util"
 	"github.com/pingcap/log"
 	"github.com/riverqueue/river"
 	"go.uber.org/zap"
 )
 
-type FetchArgs struct {
-	Scheme string `json:"scheme"`
-	Host   string `json:"host"`
-	Path   string `json:"path"`
-}
-
-func (FetchArgs) Kind() string {
-	return "fetch"
-}
-
-type FetchWorker struct {
-	river.WorkerDefaults[FetchArgs]
-}
-
-func host_and_path(job *river.Job[FetchArgs]) string {
+func host_and_path(job *river.Job[common.FetchArgs]) string {
 	var u url.URL
 	u.Scheme = job.Args.Scheme
 	u.Host = job.Args.Host
@@ -42,7 +29,7 @@ func host_and_path(job *river.Job[FetchArgs]) string {
 
 var last_hit sync.Map
 
-func fetch_page_content(job *river.Job[FetchArgs]) (map[string]string, error) {
+func fetch_page_content(job *river.Job[common.FetchArgs]) (map[string]string, error) {
 	url := url.URL{
 		Scheme: job.Args.Scheme,
 		Host:   job.Args.Host,
@@ -114,10 +101,7 @@ func fetch_page_content(job *river.Job[FetchArgs]) (map[string]string, error) {
 	return response, nil
 }
 
-// The worker just grabs things off the queue and
-// spits them out the channel. The Crawl proc then
-// does the work of processing it.
-func (w *FetchWorker) Work(ctx context.Context, job *river.Job[FetchArgs]) error {
+func (w *FetchWorker) Work(ctx context.Context, job *river.Job[common.FetchArgs]) error {
 	// Check the cache.
 	// We don't want to do anything if this is in the recently visited cache.
 	zap.L().Debug("working", zap.String("url", host_and_path(job)))
@@ -137,7 +121,22 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[FetchArgs]) error
 			)
 		}
 
-		key := util.CreateS3Key(job.Args.Host, job.Args.Path).Render()
+		// FIXME
+		// in the grand scheme, we may at this point want to have a queue for
+		// coming back a day or two later. But, in terms of fetching... if you can't
+		// get to the content... you're not going to store it. So, this
+		// bails without sending it back to the queue (for now)
+		if err != nil {
+			u := url.URL{
+				Scheme: job.Args.Scheme,
+				Host:   job.Args.Host,
+				Path:   job.Args.Path}
+			zap.L().Info("could not fetch content; not requeueing",
+				zap.String("url", u.String()))
+			return nil
+		}
+
+		key := util.CreateS3Key(job.Args.Host, job.Args.Path, "json").Render()
 		page_json["key"] = key
 
 		zap.L().Debug("storing", zap.String("key", key))
@@ -154,27 +153,30 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[FetchArgs]) error
 		// Update the cache
 		recently_visited_cache.Set(host_and_path(job), key, 0)
 
-		// 	tx, err := dbPool.Begin(ctx)
-		// 	if err != nil {
-		// 		zap.L().Panic("cannot init tx from pool")
-		// 	}
-		// 	defer tx.Rollback(ctx)
+		// Enqueue next steps
+		tx, err := extractPool.Begin(ctx)
+		if err != nil {
+			zap.L().Panic("cannot init tx from pool")
+		}
+		defer tx.Rollback(ctx)
+		// ctx, tx := common.CtxTx(dbPool)
+		// defer tx.Rollback(ctx)
 
-		// 	zap.L().Debug("inserting extract job")
-		// 	extractClient.InsertTx(context.Background(), tx, extract.ExtractRequest{
-		// 		Key: key,
-		// 	}, &river.InsertOpts{Queue: "extract"})
+		zap.L().Debug("inserting extract job")
+		extractClient.InsertTx(context.Background(), tx, common.ExtractArgs{
+			Key: key + ".json",
+		}, &river.InsertOpts{Queue: "extract"})
 
-		// 	if err := tx.Commit(ctx); err != nil {
-		// 		zap.L().Panic("cannot commit insert tx",
-		// 			zap.String("key", key))
-		// 	}
-		// }
-
-		zap.L().Info("fetched",
-			zap.String("scheme", job.Args.Scheme),
-			zap.String("host", job.Args.Host),
-			zap.String("path", job.Args.Path))
+		if err := tx.Commit(ctx); err != nil {
+			zap.L().Panic("cannot commit insert tx",
+				zap.String("key", key))
+		}
 	}
+
+	zap.L().Info("fetched",
+		zap.String("scheme", job.Args.Scheme),
+		zap.String("host", job.Args.Host),
+		zap.String("path", job.Args.Path))
+
 	return nil
 }
