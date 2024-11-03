@@ -184,7 +184,7 @@ resource "cloudfoundry_app" "pack" {
 resource "cloudfoundry_route" "serve_route" {
   space    = data.cloudfoundry_space.app_space.id
   domain   = data.cloudfoundry_domain.public.id
-  hostname = "serve-experiment-eight"
+  hostname = "search-eight"
 }
 resource "cloudfoundry_app" "serve" {
   name                 = "serve"

@@ -1,6 +1,5 @@
 .PHONY: clean
 clean:
-	rm -rf assets/static
 	rm -rf internal/sqlite/schemas/*.go
 	rm -f cmd/*/service.exe
 
