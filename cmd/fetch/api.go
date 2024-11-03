@@ -20,19 +20,6 @@ type FetchRequestInput struct {
 	ApiKey string `json:"api-key"`
 }
 
-func Heartbeat(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"status": "ok",
-	})
-}
-
-func InitializeAPI() *gin.Engine {
-	router := gin.Default()
-	router.GET("/heartbeat")
-	router.PUT("fetch", FetchRequestHandler)
-	return router
-}
-
 // https://dev.to/kashifsoofi/rest-api-with-go-chi-and-inmemory-store-43ag
 func FetchRequestHandler(c *gin.Context) {
 	var fri FetchRequestInput
@@ -60,4 +47,8 @@ func FetchRequestHandler(c *gin.Context) {
 			"status": "ok",
 		})
 	}
+}
+
+func ExtendApi(r *gin.Engine) {
+	r.PUT("/fetch", FetchRequestHandler)
 }

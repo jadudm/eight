@@ -140,7 +140,7 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[common.FetchArgs]
 		page_json["key"] = key
 
 		zap.L().Debug("storing", zap.String("key", key))
-		err = fetchStorage.Store(key+".json", page_json)
+		err = fetchStorage.Store(key, page_json)
 		// We get an error if we can't write to S3
 		if err != nil {
 			zap.L().Warn("could not store k/v",
@@ -154,7 +154,7 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[common.FetchArgs]
 		recently_visited_cache.Set(host_and_path(job), key, 0)
 
 		// Enqueue next steps
-		tx, err := extractPool.Begin(ctx)
+		tx, err := dbPool.Begin(ctx)
 		if err != nil {
 			zap.L().Panic("cannot init tx from pool")
 		}
@@ -164,7 +164,7 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[common.FetchArgs]
 
 		zap.L().Debug("inserting extract job")
 		extractClient.InsertTx(context.Background(), tx, common.ExtractArgs{
-			Key: key + ".json",
+			Key: key,
 		}, &river.InsertOpts{Queue: "extract"})
 
 		if err := tx.Commit(ctx); err != nil {

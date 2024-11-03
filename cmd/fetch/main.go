@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	common "github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/env"
 	"github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
@@ -16,12 +17,11 @@ var polite_sleep_milliseconds time.Duration
 func main() {
 	env.InitGlobalEnv()
 	InitializeQueues()
-	if fetchPool == nil {
-		zap.L().Error("DBPOOL IS NIL")
-	}
 	InitializeStorage()
 
-	engine := InitializeAPI()
+	engine := common.InitializeAPI()
+	ExtendApi(engine)
+
 	log.Println("environment initialized")
 
 	// Init a cache for the workers

@@ -4,24 +4,22 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jadudm/eight/internal/api"
+	"github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/env"
-	"github.com/jadudm/eight/pkg/extract"
+	"go.uber.org/zap"
 )
 
 func main() {
 	env.InitGlobalEnv()
+	InitializeQueues()
+	InitializeStorage()
 
 	log.Println("environment initialized")
+	routers := common.InitializeAPI()
 
-	ch := make(chan *extract.ExtractRequest)
-
-	r := api.BaseMux()
-	extended_api := ExtractApi(r, ch)
-
-	go extract.Extract(ch)
-
+	zap.L().Info("listening to the music of the spheres",
+		zap.String("port", env.Env.Port))
 	// Local and Cloud should both get this from the environment.
-	http.ListenAndServe(":"+env.Env.Port, extended_api)
+	http.ListenAndServe(":"+env.Env.Port, routers)
 
 }

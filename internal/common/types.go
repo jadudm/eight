@@ -33,7 +33,7 @@ type WalkArgs struct {
 }
 
 func (WalkArgs) Kind() string {
-	return "extract"
+	return "walk"
 }
 
 type HttpResponse func(w http.ResponseWriter, r *http.Request)

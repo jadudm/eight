@@ -4,19 +4,20 @@ run:
 test:
 	go test
 
+.PHONY: check
 check:
 	staticcheck
 
+.PHONY: generate
 generate:
 	cd ../../internal/sqlite ; sqlc generate || exit 1
 
+.PHONY: build
 build: generate
-	go build --tags fts5 -buildvcs=false -o service.exe
+	go build -buildvcs=false -o service.exe
 
 clean:
-	rm -f fetch.exe
-	rm -f Procfile
-	rm -f apt.yml
+	rm -f search.exe
 
 terraform: clean build
 	mkdir -p app

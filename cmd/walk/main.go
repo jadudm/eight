@@ -4,25 +4,23 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jadudm/eight/internal/api"
+	"github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/env"
-	"github.com/jadudm/eight/pkg/walk"
+	"go.uber.org/zap"
 )
 
 func main() {
 	env.InitGlobalEnv()
-
+	InitializeQueues()
+	InitializeStorage()
 	log.Println("environment initialized")
 
-	ch := make(chan *walk.WalkRequest)
-
-	r := api.BaseMux()
-	extended_api := WalkApi(r, ch)
-
-	go walk.Walk(ch)
+	engine := common.InitializeAPI()
 
 	log.Println("WALK listening on", env.Env.Port)
-	// Local and Cloud should both get this from the environment.
-	http.ListenAndServe(":"+env.Env.Port, extended_api)
 
+	zap.L().Info("listening to the music of the spheres",
+		zap.String("port", env.Env.Port))
+	// Local and Cloud should both get this from the environment.
+	http.ListenAndServe(":"+env.Env.Port, engine)
 }
