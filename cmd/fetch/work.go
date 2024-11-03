@@ -163,7 +163,7 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[common.FetchArgs]
 		zap.L().Debug("inserting extract job")
 		ctx, tx := common.CtxTx(extractPool)
 		defer tx.Rollback(ctx)
-		extractClient.InsertTx(context.Background(), tx, common.ExtractArgs{
+		extractClient.InsertTx(ctx, tx, common.ExtractArgs{
 			Key: key,
 		}, &river.InsertOpts{Queue: "extract"})
 		if err := tx.Commit(ctx); err != nil {
