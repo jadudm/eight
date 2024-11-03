@@ -6,8 +6,9 @@ import (
 )
 
 type Key struct {
-	Host string
-	Path string
+	Host      string
+	Path      string
+	Extension string
 }
 
 func (k *Key) SHA1() string {
@@ -16,12 +17,13 @@ func (k *Key) SHA1() string {
 }
 
 func (k *Key) Render() string {
-	return fmt.Sprintf("%s/%s", k.Host, k.SHA1())
+	return fmt.Sprintf("%s/%s.%s", k.Host, k.SHA1(), k.Extension)
 }
 
-func CreateS3Key(host string, path string) *Key {
+func CreateS3Key(host string, path string, ext string) *Key {
 	return &Key{
-		Host: host,
-		Path: path,
+		Host:      host,
+		Path:      path,
+		Extension: ext,
 	}
 }

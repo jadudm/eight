@@ -128,17 +128,15 @@ func (s3 *S3) Get(key string) (Object, error) {
 		key,
 		minio.GetObjectOptions{})
 
+	zap.L().Debug("retrieved S3 object", zap.String("key", key))
+
 	if err != nil {
 		log.Println(s3.Bucket.CredentialString("bucket"), key)
 		log.Println(err)
 		return nil, err
 	}
 
-	return newJsonObjectFromMinio(bucket_name, key, object)
-}
-
-func newJsonObjectFromMinio(bucket_name string, key string, mo *minio.Object) (Obj, error) {
-	raw, err := io.ReadAll(mo)
+	raw, err := io.ReadAll(object)
 	if err != nil {
 		log.Fatal("KV could not read object bytes ", bucket_name, " ", key)
 	}

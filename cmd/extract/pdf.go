@@ -59,6 +59,7 @@ func extractPdf(obj kv.Object) {
 			packClient.InsertTx(ctx, tx, common.PackArgs{
 				Key: extracted_key,
 			}, &river.InsertOpts{Queue: "pack"})
+
 		}
 	}
 

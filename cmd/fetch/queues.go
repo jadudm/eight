@@ -17,17 +17,24 @@ import (
 // One pool of connections for River.
 
 // The work client, doing the work of `fetch`
-var dbPool *pgxpool.Pool
+var fetchPool *pgxpool.Pool
 var fetchClient *river.Client[pgx.Tx]
+var extractPool *pgxpool.Pool
 var extractClient *river.Client[pgx.Tx]
+var walkPool *pgxpool.Pool
+var walkClient *river.Client[pgx.Tx]
 
 type FetchWorker struct {
 	river.WorkerDefaults[common.FetchArgs]
 }
 
 func InitializeQueues() {
-	ctx, pool, workers := common.CommonQueueInit()
-	dbPool = pool
+	ctx, fP, workers := common.CommonQueueInit()
+	_, eP, _ := common.CommonQueueInit()
+	_, wP, _ := common.CommonQueueInit()
+	fetchPool = fP
+	extractPool = eP
+	walkPool = wP
 
 	// Essentially adds a worker "type" to the work engine.
 	river.AddWorker(workers, &FetchWorker{})
@@ -41,7 +48,7 @@ func InitializeQueues() {
 	}
 
 	// Work client
-	fetchClient, err = river.NewClient(riverpgxv5.New(dbPool), &river.Config{
+	fetchClient, err = river.NewClient(riverpgxv5.New(fetchPool), &river.Config{
 		Queues: map[string]river.QueueConfig{
 			"fetch": {MaxWorkers: int(fetch_service.GetParamInt64("workers"))},
 		},
@@ -55,7 +62,12 @@ func InitializeQueues() {
 	}
 
 	// Insert-only client to `extract`
-	extractClient, err = river.NewClient(riverpgxv5.New(dbPool), &river.Config{})
+	extractClient, err = river.NewClient(riverpgxv5.New(extractPool), &river.Config{})
+	if err != nil {
+		zap.L().Error("could not establish insert-only client")
+		os.Exit(1)
+	}
+	walkClient, err = river.NewClient(riverpgxv5.New(walkPool), &river.Config{})
 	if err != nil {
 		zap.L().Error("could not establish insert-only client")
 		os.Exit(1)

@@ -11,18 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func CommonQueueInit() (context.Context, *pgxpool.Pool, *river.Workers) {
-	var err error
+func GetPool(database_url string) (context.Context, *pgxpool.Pool) {
 	ctx := context.Background()
-
-	// Establsih the database
-	database_url, err := env.Env.GetDatabaseUrl(env.WorkingDatabase)
-	if err != nil {
-		zap.L().Error("unable to get connection string; exiting",
-			zap.String("database", env.WorkingDatabase),
-		)
-		os.Exit(1)
-	}
 
 	pool, err := pgxpool.New(ctx, database_url)
 	if err != nil {
@@ -31,7 +21,21 @@ func CommonQueueInit() (context.Context, *pgxpool.Pool, *river.Workers) {
 		)
 		os.Exit(1)
 	}
+	return ctx, pool
+}
 
+func CommonQueueInit() (context.Context, *pgxpool.Pool, *river.Workers) {
+	var err error
+	database_url, err := env.Env.GetDatabaseUrl(env.WorkingDatabase)
+	if err != nil {
+		zap.L().Error("unable to get connection string; exiting",
+			zap.String("database", env.WorkingDatabase),
+		)
+		os.Exit(1)
+	}
+
+	// Establsih the database
+	ctx, pool := GetPool(database_url)
 	// Create a pool of workers
 	workers := river.NewWorkers()
 	return ctx, pool, workers

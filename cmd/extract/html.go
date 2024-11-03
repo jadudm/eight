@@ -75,14 +75,9 @@ func extractHtml(obj kv.Object) {
 	extract_bucket.Store(extracted_key, new)
 
 	// Enqueue next steps
+	zap.L().Info("enqueueing pack", zap.String("key", extracted_key))
 	ctx, tx := common.CtxTx(dbPool)
 	defer tx.Rollback(ctx)
-
-	zap.L().Info("enqueueing walk and pack", zap.String("key", extracted_key))
-	walkClient.InsertTx(ctx, tx, common.WalkArgs{
-		Key: extracted_key,
-	}, &river.InsertOpts{Queue: "walk"})
-
 	packClient.InsertTx(ctx, tx, common.PackArgs{
 		Key: extracted_key,
 	}, &river.InsertOpts{Queue: "pack"})

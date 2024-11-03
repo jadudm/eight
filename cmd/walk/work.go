@@ -10,26 +10,12 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	expirable "github.com/go-pkgz/expirable-cache/v3"
 	common "github.com/jadudm/eight/internal/common"
-	"github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/kv"
 	"github.com/jadudm/eight/internal/util"
 	"github.com/riverqueue/river"
 	"go.uber.org/zap"
 )
-
-var cache expirable.Cache[string, int]
-
-func get_ttl() int64 {
-	ws, err := env.Env.GetUserService("walk")
-	if err != nil {
-		log.Println("WALK no service")
-	}
-	minutes := ws.GetParamInt64("cache-ttl-minutes")
-	seconds := ws.GetParamInt64("cache-ttl-seconds")
-	return (minutes * 60) + seconds
-}
 
 // //////////////////////////////////////
 // go_for_a_walk
@@ -72,13 +58,13 @@ func extract_links(JSON kv.JSON) []*url.URL {
 			if err != nil {
 				log.Println(err)
 			} else {
-				if _, ok := cache.Get(link_to_crawl); ok {
+				if _, ok := expirable_cache.Get(link_to_crawl); ok {
 					log.Println("CACHE HIT", link)
 				} else {
 					if strings.HasPrefix(link_to_crawl, "https") {
 						//log.Println("YES", e.JSON["host"], link_to_crawl)
 						// Don't hit these again
-						cache.Set(link_to_crawl, 0, 0)
+						expirable_cache.Set(link_to_crawl, 0, 0)
 						link_set[link_to_crawl] = true
 					}
 				}
@@ -217,7 +203,7 @@ func (w *WalkWorker) Work(ctx context.Context, job *river.Job[common.WalkArgs]) 
 	// If we're here, we already fetched the content.
 	// So, add ourselves to the cache. Don't re-crawl ourselves
 	// FIXME: figure out if the scheme ends up in the JSON
-	cache.Set(to_link(JSON), 0, 0)
+	expirable_cache.Set(to_link(JSON), 0, 0)
 
 	go_for_a_walk(JSON)
 

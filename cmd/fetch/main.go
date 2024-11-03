@@ -32,8 +32,8 @@ func main() {
 	polite_sleep_milliseconds = time.Duration(millis * int64(time.Millisecond))
 
 	recently_visited_cache = cache.New(
-		time.Duration(service.GetParamInt64("cache_default_expiration_minutes"))*time.Minute,
-		time.Duration(service.GetParamInt64("cache_cleanup_interval_minutes"))*time.Minute)
+		time.Duration(service.GetParamInt64("polite_cache_default_expiration_minutes"))*time.Minute,
+		time.Duration(service.GetParamInt64("polite_cache_cleanup_interval_minutes"))*time.Minute)
 
 	zap.L().Info("listening to the music of the spheres",
 		zap.String("port", env.Env.Port))

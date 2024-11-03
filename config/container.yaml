@@ -12,8 +12,8 @@ EIGHT_SERVICES:
       parameters:
         workers: 10
         polite_sleep_milliseconds: 2000
-        cache_default_expiration_minutes: 60
-        cache_cleanup_interval_minutes: 10
+        polite_cache_default_expiration_minutes: 60
+        polite_cache_cleanup_interval_minutes: 10
     - name: "walk"
       credentials:
         port: 8888
@@ -21,6 +21,8 @@ EIGHT_SERVICES:
         workers: 10
         cache-ttl-minutes: 30
         cache-ttl-seconds: 0
+        polite_cache_default_expiration_minutes: 60
+        polite_cache_cleanup_interval_minutes: 10
     - name: "extract"
       credentials:
         port: 8888
