@@ -5,7 +5,6 @@ import (
 
 	"github.com/jadudm/eight/internal/queueing"
 	"github.com/jadudm/eight/pkg/extract"
-	"github.com/jadudm/eight/pkg/procs"
 )
 
 func Fetch(ch_req chan *FetchRequest) {
@@ -13,12 +12,6 @@ func Fetch(ch_req chan *FetchRequest) {
 	ch_key := make(chan string)
 	ch_val := make(chan string)
 	ch_ins := make(chan map[string]string)
-
-	// Run the cache process.
-	// FIXME: make it so we can configure the Crawl proc
-	// with a cache. perhaps by passing in a
-	// cache channel bundle Cache{chan, chan, chan}
-	go procs.StringCache(ch_key, ch_val, ch_ins)
 
 	// This lets us queue new jobs.
 	clean_c := queueing.NewRiver()

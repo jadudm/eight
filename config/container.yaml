@@ -10,27 +10,35 @@ EIGHT_SERVICES:
       credentials:
         port: 8888
       parameters:
+        workers: 10
         polite_sleep_milliseconds: 2000
+        cache_default_expiration_minutes: 60
+        cache_cleanup_interval_minutes: 10
     - name: "walk"
       credentials:
         port: 8888
       parameters:
+        workers: 10
         cache-ttl-minutes: 30
         cache-ttl-seconds: 0
     - name: "extract"
       credentials:
         port: 8888
       parameters:
+        workers: 10
         extract_pdf: true
         extract_html: true
         walkabout: true
     - name: "pack"
       credentials:
         port: 8888
+      parameters:
+        workers: 10
     - name: "serve"
       credentials:
         port: 8888
       parameters:
+        workers: 10
         external_port: 10004
         external_scheme: http
         external_host: localhost
@@ -98,35 +106,6 @@ VCAP_SERVICES:
       syslog_drain_url: "https://ALPHA.drain.url"
       volume_mounts: ["no_mounts"]
     #################################
-    # pack
-    #################################
-    # - label: "s3"
-    #   provider: "minio-local"
-    #   plan: "basic"
-    #   name: "pack"
-    #   tags:
-    #     - "AWS"
-    #     - "S3"
-    #     - "object-storage"
-    #   # These are random UUID4s from the Unix `uuid` command
-    #   instance_guid: "d77a8446-2285-4489-8f92-5f0e32e272ab"
-    #   binding_guid: "e686ea8d-4bf4-4c8e-8a43-d69256364bca"
-    #   binding_name: null
-    #   instance_name: "pack-storage"
-    #   credentials:
-    #     uri: "http://minio:9000"
-    #     port: 9000
-    #     insecure_skip_verify: false
-    #     access_key_id: "experimenteight"
-    #     secret_access_key: "experimenteight"
-    #     region: "us-east-1"
-    #     bucket: "pack"
-    #     endpoint: "minio:9000"
-    #     fips_endpoint: "http://minio:9000"
-    #     additional_buckets: []
-    #   syslog_drain_url: "https://ALPHA.drain.url"
-    #   volume_mounts: ["no_mounts"]
-    #################################
     # serve
     #################################
     - label: "s3"
@@ -156,7 +135,7 @@ VCAP_SERVICES:
       syslog_drain_url: "https://ALPHA.drain.url"
       volume_mounts: ["no_mounts"]
   aws-rds:
-    - label: "queue-db"
+    - label: "experiment-eight-db"
       provider: null
       plan: null
       name: "experiment-eight-db"
@@ -167,7 +146,7 @@ VCAP_SERVICES:
       instance_guid: "a994b2e4-947c-11ef-bbb9-cf99a893118f"
       binding_guid: "b3c7a0be-947c-11ef-b61f-077373830f35"
       binding_name: null
-      instance_name: "queue-db"
+      instance_name: "experiment-eight-db"
       credentials:
         db_name: "postgres"
         host: "queue-db"

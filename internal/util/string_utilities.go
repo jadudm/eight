@@ -53,3 +53,12 @@ func GetMimeType(path string) string {
 	}
 	return m["json"]
 }
+
+func IsSearchableMimeType(mime string) bool {
+	for _, m := range mime_types {
+		if strings.Contains(mime, m) {
+			return true
+		}
+	}
+	return false
+}

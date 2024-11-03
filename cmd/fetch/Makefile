@@ -12,7 +12,7 @@ generate:
 
 # -tags=viper_bind_struct 
 build: generate
-	go build --tags fts5 -buildvcs=false -o service.exe
+	go build -buildvcs=false -o service.exe
 
 clean:
 	rm -f service.exe

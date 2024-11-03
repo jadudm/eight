@@ -202,8 +202,9 @@ func (s3 *S3) List(prefix string) ([]*ObjInfo, error) {
 // Stores a k,v to the bucket
 func store(s3 *S3, key string, size int64, jsonm JSON, reader io.Reader) error {
 	mime := "octet/binary"
-	if v, ok := jsonm["content-type"]; ok {
-		mime = v
+
+	if jsonm != nil {
+		mime = "application/json"
 	}
 
 	ctx := context.Background()

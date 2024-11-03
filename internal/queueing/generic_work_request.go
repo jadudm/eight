@@ -1,6 +1,8 @@
 package queueing
 
-import "github.com/riverqueue/river"
+import (
+	"github.com/riverqueue/river"
+)
 
 type GenericRequest struct {
 	Key       string `json:"key"`
@@ -20,3 +22,16 @@ func (g GenericRequest) InsertOpts() river.InsertOpts {
 		Queue: g.Kind(),
 	}
 }
+
+// // To be flexible, and use this across the app...
+// // this process takes a channel of maps. It looks at the map, and
+// // then routes it to the right River work queue.
+// func Enqueue(generic_job chan<- kv.JSON) {
+
+// 	// Set up the River client
+
+// 	for {
+// 		// Switch on the job kind
+
+// 	}
+// }
