@@ -106,6 +106,7 @@ func walk_html(JSON kv.JSON) {
 			Scheme: link.Scheme,
 			Path:   link.Path,
 		}, &river.InsertOpts{Queue: "fetch"})
+
 		if err := tx.Commit(ctx); err != nil {
 			zap.L().Panic("cannot commit insert tx",
 				zap.String("host", link.Host), zap.String("path", link.Path))

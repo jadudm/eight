@@ -76,10 +76,14 @@ func extractHtml(obj kv.Object) {
 
 	// Enqueue next steps
 	zap.L().Info("enqueueing pack", zap.String("key", extracted_key))
-	ctx, tx := common.CtxTx(dbPool)
+	ctx, tx := common.CtxTx(packPool)
 	defer tx.Rollback(ctx)
 	packClient.InsertTx(ctx, tx, common.PackArgs{
 		Key: extracted_key,
 	}, &river.InsertOpts{Queue: "pack"})
+	if err := tx.Commit(ctx); err != nil {
+		zap.L().Panic("cannot commit insert tx",
+			zap.String("key", extracted_key))
+	}
 
 }

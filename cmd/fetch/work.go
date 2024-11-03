@@ -173,15 +173,15 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[common.FetchArgs]
 
 		zap.L().Debug("Inserting walk job")
 		ctx2, tx2 := common.CtxTx(walkPool)
-		defer tx.Rollback(ctx)
+		defer tx2.Rollback(ctx)
 		walkClient.InsertTx(ctx2, tx2, common.WalkArgs{
 			Key: key,
 		}, &river.InsertOpts{Queue: "walk"})
-		if err := tx.Commit(ctx2); err != nil {
+		if err := tx2.Commit(ctx2); err != nil {
+			zap.L().Info(err.Error())
 			zap.L().Panic("cannot commit insert tx",
 				zap.String("key", key))
 		}
-
 	}
 
 	zap.L().Info("fetched",

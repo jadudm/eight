@@ -15,12 +15,15 @@ import (
 
 // GLOBAL TO THE APP
 // One pool of connections for River.
-var dbPool *pgxpool.Pool
-
 // The work client, doing the work of `extract`
 var extractClient *river.Client[pgx.Tx]
+var extractPool *pgxpool.Pool
+
 var walkClient *river.Client[pgx.Tx]
+var walkPool *pgxpool.Pool
+
 var packClient *river.Client[pgx.Tx]
+var packPool *pgxpool.Pool
 
 type ExtractWorker struct {
 	river.WorkerDefaults[common.ExtractArgs]
@@ -28,9 +31,11 @@ type ExtractWorker struct {
 
 func InitializeQueues() {
 	var err error
-	ctx, pool, workers := common.CommonQueueInit()
+	ctx, extractPool, workers := common.CommonQueueInit()
+	_, walkPool, _ = common.CommonQueueInit()
+	_, packPool, _ = common.CommonQueueInit()
+
 	zap.L().Debug("initialized common queues")
-	dbPool = pool
 
 	river.AddWorker(workers, &ExtractWorker{})
 
@@ -43,7 +48,7 @@ func InitializeQueues() {
 	}
 
 	// Work client
-	extractClient, err = river.NewClient(riverpgxv5.New(dbPool), &river.Config{
+	extractClient, err = river.NewClient(riverpgxv5.New(extractPool), &river.Config{
 		Queues: map[string]river.QueueConfig{
 			"extract": {MaxWorkers: int(extract_service.GetParamInt64("workers"))},
 		},
@@ -57,12 +62,12 @@ func InitializeQueues() {
 	}
 
 	// write-only clients for posting jobs
-	walkClient, err = river.NewClient(riverpgxv5.New(dbPool), &river.Config{})
+	walkClient, err = river.NewClient(riverpgxv5.New(walkPool), &river.Config{})
 	if err != nil {
 		zap.L().Error("could not start insert-only walk client")
 	}
 
-	packClient, err = river.NewClient(riverpgxv5.New(dbPool), &river.Config{})
+	packClient, err = river.NewClient(riverpgxv5.New(packPool), &river.Config{})
 	if err != nil {
 		zap.L().Error("could not start insert-only pack client")
 	}
