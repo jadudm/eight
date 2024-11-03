@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jadudm/eight/internal/env"
 )
 
@@ -54,7 +57,9 @@ type LDBResponseBody struct {
 	Body *LDBResponse
 }
 
-func ListDatabaseRequestHandler(ctx context.Context, input *LDBRequestInput) (*LDBResponseBody, error) {
+func DatabasesHandler(c *gin.Context) {
+	start := time.Now()
+
 	s, _ := env.Env.GetUserService("serve")
 	database_files_path := s.GetParamString("database_files_path")
 
@@ -71,10 +76,10 @@ func ListDatabaseRequestHandler(ctx context.Context, input *LDBRequestInput) (*L
 			dbs = append(dbs, strings.TrimSuffix(file.Name(), suffix))
 		}
 	}
+	duration := time.Since(start)
 
-	log.Println("INFO", dbs)
-	return &LDBResponseBody{
-		Body: &LDBResponse{
-			Databases: dbs,
-		}}, nil
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"databases": dbs,
+		"elapsed":   duration,
+	})
 }

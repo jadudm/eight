@@ -28,6 +28,14 @@ func (PackArgs) Kind() string {
 	return "pack"
 }
 
+type ServeArgs struct {
+	Filename string `json:"filename"`
+}
+
+func (ServeArgs) Kind() string {
+	return "serve"
+}
+
 type WalkArgs struct {
 	Key string `json:"key"`
 }

@@ -4,30 +4,40 @@ EIGHT_SERVICES:
       credentials:
         port: 8888
       parameters:
+        workers: 10
         polite_sleep_milliseconds: 2000
+        polite_cache_default_expiration_minutes: 60
+        polite_cache_cleanup_interval_minutes: 10
     - name: "walk"
       credentials:
         port: 8888
       parameters:
+        workers: 10
         cache-ttl-minutes: 30
         cache-ttl-seconds: 0
+        polite_cache_default_expiration_minutes: 60
+        polite_cache_cleanup_interval_minutes: 10
     - name: "extract"
       credentials:
         port: 8888
       parameters:
+        workers: 10
         extract_pdf: true
         extract_html: true
         walkabout: true
     - name: "pack"
       credentials:
         port: 8888
+      parameters:
+        workers: 10
     - name: "serve"
       credentials:
         port: 8888
       parameters:
+        workers: 10
         external_port: 443
         external_scheme: https
-        external_host: serve-experiment-eight.app.cloud.gov
-        static_files_path: /home/vcap/app/static
-        database_files_path: /home/vcap/app/assets/databases
+        external_host: search-eight.app.cloud.gov
+        static_files_path: "/home/vcap/app/static"
+        database_files_path: "/home/vcap/app/assets/databases"
         results_per_query: 10

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
+	"go.uber.org/zap"
 
 	search_db "github.com/jadudm/eight/internal/sqlite/schemas"
 )
@@ -67,8 +68,12 @@ func (pt *PackTable) PrepForNetwork() {
 
 func SqliteFilename(db_filename string) string {
 	// Always add an .sqlite extension to filenames.
-	if has_ext := strings.HasSuffix("sqlite", db_filename); !has_ext {
+	if has_ext := strings.HasSuffix(db_filename, "sqlite"); has_ext {
+		zap.L().Debug("not adding .sqlite to filename")
+		return db_filename
+	} else {
+		zap.L().Debug("adding .sqlite to filename")
 		db_filename = db_filename + ".sqlite"
+		return db_filename
 	}
-	return db_filename
 }

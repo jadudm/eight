@@ -58,14 +58,14 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 
 					// Enqueue serve
 					zap.L().Debug("inserting serve job")
-					ctx, tx := common.CtxTx(extractPool)
-					serveClient.InsertTx(ctx, tx, common.ExtractArgs{
-						Key: sqlite_filename,
+					ctx, tx := common.CtxTx(servePool)
+					serveClient.InsertTx(ctx, tx, common.ServeArgs{
+						Filename: sqlite_filename,
 					}, &river.InsertOpts{Queue: "serve"})
 					if err := tx.Commit(ctx); err != nil {
 						tx.Rollback(ctx)
 						zap.L().Panic("cannot commit insert tx",
-							zap.String("key", sqlite_filename))
+							zap.String("filename", sqlite_filename))
 					}
 
 					delete(clocks, sqlite_filename)
