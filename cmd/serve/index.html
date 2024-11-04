@@ -89,7 +89,7 @@
                 var r = userData.results[k];
                 if (r.path.length > 0) {
                   var entry = document.createElement('li');
-                  var h = "<a href='https://{HOST}" + r.path + "' target='_blank'>" + r.path + "</a>"
+                  var h = "<a href='https://{SEARCH_HOST}" + r.path + "' target='_blank'>" + r.path + "</a>"
                   h += "<br/>" + r.snippet
                   entry.innerHTML = h
                   list.appendChild(entry);
