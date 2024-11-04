@@ -76,7 +76,6 @@
               document.getElementById("six-list").innerHTML = "";
 
               var list = document.getElementById('six-list');
-              console.log(list);
 
               var stats = document.getElementById('stats')
               stats.innerHTML = "";
@@ -254,7 +253,7 @@
                   entry.classList.add("usa-current");
                 }
                 var link = document.createElement('a')
-                link.innerHTML = db
+                link.innerHTML = trim_to_chars(db, 32)
                 link.setAttribute("href", "{SCHEME}://{HOST}:{PORT}/search/" + db)
                 entry.appendChild(link)
                 list.appendChild(entry);
