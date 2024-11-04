@@ -39,6 +39,20 @@ func ServeHost(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html", data)
 }
 
+func MultiStatsHandler(c *gin.Context) {
+	dbs := listHostedDOmains()
+	res := make(map[string]any)
+	base_stats := common.NewBaseStats("serve")
+	res["stats"] = base_stats.GetAll()
+	for _, db := range dbs {
+		st := common.NewBaseStats(db)
+		res[db] = st.GetAll()
+	}
+	res["hosted_domains"] = dbs
+
+	c.JSON(http.StatusOK, res)
+}
+
 func main() {
 	env.InitGlobalEnv()
 	InitializeQueues()
@@ -67,7 +81,7 @@ func main() {
 		v1.GET("/heartbeat", common.Heartbeat)
 		v1.POST("/search", SearchHandler)
 		v1.GET("/databases", DatabasesHandler)
-		v1.GET("/stats", common.StatsHandler("serve"))
+		v1.GET("/stats", MultiStatsHandler)
 	}
 
 	//engine.Use(static.Serve("/static", static.LocalFile(static_files_path, true)))

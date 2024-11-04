@@ -81,6 +81,7 @@
               var stats = document.getElementById('stats')
               stats.innerHTML = "";
               query_time = userData.elapsed;
+              bold(stats, "This query")
               statPara(stats, "Query time", nanoToMillis(query_time), "ms")
               AllTheStats(stats)
 
@@ -130,39 +131,56 @@
               }
               return response.json();
             })
-            .then(userData => {
-              data = userData["stats"]
-              console.log(data)
-              statPara(stats, "Avg. query time", nanoToMillis(data["_average_query_time"]), "ms")
-              statPara(stats, "Queries", data["_{SEARCH_HOST}"], "")
-
-              top_queries = []
-              console.log("DATA", data)
-              for (const key in data) {
-                v = data[key]
-                if (key.startsWith("_")) {
-                  // skip
-                } else {
-                  top_queries.push([key, v])
-                }
+            .then(data => {
+              // Summary stats are at the key `stats`
+              if ("stats" in data) {
+                bold(stats, "Engine-wide")
+                statPara(stats, "Avg. query time", nanoToMillis(data["stats"]["average_query_time"]), "ms")
+                statPara(stats, "Queries", data["stats"]["queries"], "")
               }
 
-              if (top_queries != []) {
-                e = document.createElement('p')
-                b = document.createElement('b')
-                b.innerHTML = "Top queries"
-                e.appendChild(b)
-                stats.appendChild(e)
+              stats.appendChild(document.createElement('hr'))
 
-                top_queries.sort(function(a, b) {return a[1]-b[1]}).reverse()
-                console.log(top_queries)
-                for (let step = 0; step < 3; step++) {
-                  statPara(stats, top_queries[step][0], top_queries[step][1], "")
+              for (domain of data["hosted_domains"]) {
+                console.log(domain, "{SEARCH_HOST}")
+                if (domain == "{SEARCH_HOST}") {
+                  bold(stats, "On " + domain)
+                  statPara(stats, "Avg. query time", nanoToMillis(data["{SEARCH_HOST}"]["average_query_time"]), "ms")
+                  statPara(stats, "Queries", data["{SEARCH_HOST}"]["queries"], "")
+
+                  top_queries = []
+                  console.log("DATA", data)
+                  for (const key in data["{SEARCH_HOST}"]) {
+                    if (key.startsWith("term:")) {
+                      v = data["{SEARCH_HOST}"][key]
+                      t = key.replace("term:", "")
+                      if (t.length >= 2) {
+                        top_queries.push([t, v])
+                      }
+                    }
+                  }
+
+                  if (top_queries != []) {
+
+                    bold(stats, "Top queries")
+                    top_queries.sort(function (a, b) { return a[1] - b[1] }).reverse()
+                    console.log(top_queries)
+                    for (let step = 0; step < 3; step++) {
+                      statPara(stats, top_queries[step][0], top_queries[step][1], "")
+                    }
+                  }
                 }
               }
-
 
             })
+        }
+
+        function bold(parent, msg) {
+          e = document.createElement('p')
+                    b = document.createElement('b')
+                    b.innerHTML = msg
+                    e.appendChild(b)
+                    parent.appendChild(e)
         }
 
         function getSortedHashDesc(inputHash) {

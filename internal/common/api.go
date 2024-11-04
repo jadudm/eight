@@ -78,6 +78,11 @@ func (e *BaseStats) Set(key string, val int64) {
 	e.stats.Store(key, val)
 }
 
+func (e *BaseStats) HasKey(key string) bool {
+	_, ok := e.stats.Load(key)
+	return ok
+}
+
 func (e *BaseStats) Get(key string) int64 {
 	v, _ := e.stats.Load(key)
 	return v.(int64)

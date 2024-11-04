@@ -12,39 +12,6 @@ import (
 	"github.com/jadudm/eight/internal/env"
 )
 
-// This is essentially a full API back-to-front.
-/*
-huma.Register(api, huma.Operation{
-	OperationID:   "post-info-request",
-	Method:        http.MethodPost,
-	Path:          "/info",
-	Summary:       "Info about the service",
-	Description:   "Info about the service",
-	Tags:          []string{"Serve"},
-	DefaultStatus: http.StatusAccepted,
-}, InfoRequestHandler)
-
-type InfoRequestInput struct {
-	Body struct {
-		Host  string `json:"host" maxLength:"500" doc:"Host to search"`
-		Terms string `json:"terms" maxLength:"200" doc:"Search terms"`
-	}
-}
-
-type InfoRequestReturn func(ctx context.Context, input *InfoRequestInput) (*struct{}, error)
-
-type InfoResponse struct {
-	Result  string                               `json:"result"`
-	Elapsed time.Duration                        `json:"elapsed"`
-	Results []schemas.SearchSiteIndexSnippetsRow `json:"results"`
-}
-
-func InfoRequestHandler(ctx context.Context, input *InfoRequestInput) (*struct{}, error) {
-
-	return nil, nil
-}
-*/
-
 type LDBRequestInput struct{}
 
 type LDBRequestReturn func(ctx context.Context, input *LDBRequestInput) (*struct{}, error)
@@ -57,8 +24,7 @@ type LDBResponseBody struct {
 	Body *LDBResponse
 }
 
-func DatabasesHandler(c *gin.Context) {
-	start := time.Now()
+func listHostedDOmains() []string {
 
 	s, _ := env.Env.GetUserService("serve")
 	database_files_path := s.GetParamString("database_files_path")
@@ -76,7 +42,14 @@ func DatabasesHandler(c *gin.Context) {
 			dbs = append(dbs, strings.TrimSuffix(file.Name(), suffix))
 		}
 	}
+	return dbs
+}
+
+func DatabasesHandler(c *gin.Context) {
+	start := time.Now()
+
 	duration := time.Since(start)
+	dbs := listHostedDOmains()
 
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"databases": dbs,
