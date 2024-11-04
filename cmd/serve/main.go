@@ -21,11 +21,12 @@ func ServeHost(c *gin.Context) {
 	external_scheme := s.GetParamString("external_scheme")
 	external_host := s.GetParamString("external_host")
 	external_port := s.GetParamInt64("external_port")
+	static_files_path := s.GetParamString("static_files_path")
 
 	zap.L().Debug("serving up a host", zap.String("external_host", external_host))
 
 	host := c.Param("host")
-	data, err := os.ReadFile("index.html")
+	data, err := os.ReadFile(static_files_path + "/index.html")
 	if err != nil {
 		log.Println("SERVE could not read index.html")
 		log.Fatal(err)
@@ -74,6 +75,12 @@ func main() {
 	/////////////////////
 	// Server/API
 	engine := gin.Default()
+	engine.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/search/start")
+	})
+	engine.GET("/search", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/search/start")
+	})
 	engine.StaticFS("/static", gin.Dir(static_files_path, true))
 	engine.GET("/search/:host", ServeHost)
 	v1 := engine.Group("/api")
