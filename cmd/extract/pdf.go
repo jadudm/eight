@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"maps"
+	"runtime"
 
 	"github.com/jadudm/eight/internal/common"
 	kv "github.com/jadudm/eight/internal/kv"
@@ -65,6 +66,9 @@ func extractPdf(obj kv.Object) {
 					zap.String("key", extracted_key))
 			}
 
+			// https://weaviate.io/blog/gomemlimit-a-game-changer-for-high-memory-applications
+			// https://stackoverflow.com/questions/38972003/how-to-stop-the-golang-gc-and-trigger-it-manually
+			runtime.GC()
 		}
 	}
 

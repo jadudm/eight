@@ -72,7 +72,7 @@ resource "cloudfoundry_app" "fetch" {
   path                 = "zips/fetch.zip"
   source_code_hash     = filesha256("zips/fetch.zip")
   disk_quota           = 512
-  memory               = 128
+  memory               = 256
   instances            = 1
   strategy             = "rolling"
   timeout              = 200
@@ -232,7 +232,7 @@ resource "cloudfoundry_app" "walk" {
   path                 = "zips/walk.zip"
   source_code_hash     = filesha256("zips/walk.zip")
   disk_quota           = 512
-  memory               = 64
+  memory               = 128
   instances            = 1
   strategy             = "rolling"
   timeout              = 200

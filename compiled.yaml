@@ -6,10 +6,14 @@ services:
   fetch:
     container_name: fetch
     image: eight/dev
+    deploy:
+      resources:
+        limits:
+          memory: 236M
     build: 
       context: .
       dockerfile: ./cmd/fetch/Dockerfile
-    entrypoint: /home/vcap/app/cmd/fetch/run-fast.sh
+    entrypoint: /home/vcap/app/cmd/fetch/service.exe
     volumes:
       - type: bind
         source: .
@@ -33,8 +37,8 @@ services:
       PORT: 8888
       API_KEY: lego
       DEBUG_LEVEL: info
-      GIN_MODE: debug
-    restart: always
+      GIN_MODE: release
+    restart: no
 
   #-----------------------------------------------------
   # extract
@@ -44,14 +48,14 @@ services:
     image: eight/dev
     # Simulate CF
     # https://stackoverflow.com/questions/42345235/how-to-specify-memory-cpu-limit-in-docker-compose-version-3
-    # deploy:
-    #   resources:
-    #     limits:
-    #       memory: 256M
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     build: 
       context: .
       dockerfile: ./cmd/extract/Dockerfile
-    entrypoint: /home/vcap/app/cmd/extract/run-fast.sh # /home/vcap/app/cmd/extract/service.exe
+    entrypoint: /home/vcap/app/cmd/extract/service.exe
     volumes:
       - type: bind
         source: .
@@ -74,6 +78,7 @@ services:
       ENV: "DOCKER"
       PORT: 8888
       DEBUG_LEVEL: debug
+      GIN_MODE: debug
     restart: always
 
   #-----------------------------------------------------
@@ -85,7 +90,7 @@ services:
     build: 
       context: .
       dockerfile: ./cmd/walk/Dockerfile
-    entrypoint: /home/vcap/app/cmd/walk/run-fast.sh
+    entrypoint: /home/vcap/app/cmd/walk/service.exe
     volumes:
       - type: bind
         source: .
@@ -108,6 +113,7 @@ services:
       ENV: "DOCKER"
       PORT: 8888
       DEBUG_LEVEL: debug
+      GIN_MODE: debug
     restart: always
 
   #-----------------------------------------------------
@@ -119,7 +125,7 @@ services:
     build: 
       context: .
       dockerfile: ./cmd/pack/Dockerfile
-    entrypoint: /home/vcap/app/cmd/pack/run-fast.sh
+    entrypoint: /home/vcap/app/cmd/pack/service.exe
     volumes:
       - type: bind
         source: .
@@ -141,6 +147,7 @@ services:
     environment:
       ENV: "DOCKER"
       DEBUG_LEVEL: "debug"
+      GIN_MODE: debug
       PORT: 8888
     restart: always
 
@@ -153,7 +160,7 @@ services:
     build: 
       context: .
       dockerfile: ./cmd/serve/Dockerfile
-    entrypoint: /home/vcap/app/cmd/serve/run-fast.sh
+    entrypoint: /home/vcap/app/cmd/serve/service.exe
     volumes:
       - type: bind
         source: .
@@ -176,6 +183,7 @@ services:
       ENV: "DOCKER"
       DEBUG_LEVEL: "debug"
       PORT: 8888
+      GIN_MODE: debug
     restart: always
 
   #-----------------------------------------------------

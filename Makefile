@@ -18,6 +18,10 @@ build: clean generate
 	cd cmd/serve ; make build
 	cd cmd/walk ; make build
 
+.PHONY: up
+up: build
+	docker compose -f compiled.yaml up
+
 .PHONY: run
 run: generate clean
 	cd assets ; unzip -o static.zip > /dev/null 2>&1

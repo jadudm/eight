@@ -144,6 +144,7 @@
               for (domain of data["hosted_domains"]) {
                 console.log(domain, "{SEARCH_HOST}")
                 if (domain == "{SEARCH_HOST}") {
+                  domain = trim_to_chars(domain, 32)
                   bold(stats, "On " + domain)
                   statPara(stats, "Avg. query time", nanoToMillis(data["{SEARCH_HOST}"]["average_query_time"]), "ms")
                   statPara(stats, "Queries", data["{SEARCH_HOST}"]["queries"], "")
@@ -173,6 +174,14 @@
               }
 
             })
+        }
+
+        function trim_to_chars(domain, n) {
+          if (domain.length >= n) {
+            first = domain.substr(0, 12)
+            last = domain.substr(-12)
+            return first + "..." + last
+          }
         }
 
         function bold(parent, msg) {

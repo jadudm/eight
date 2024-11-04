@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"runtime"
 	"sync"
 
 	"github.com/jadudm/eight/internal/common"
@@ -47,5 +48,9 @@ func (w *PackWorker) Work(ctx context.Context, job *river.Job[common.PackArgs]) 
 		}
 		ch_finalize <- pt
 	}
+
+	// Agressively keep memory clear.
+	// GC after packing every message.
+	runtime.GC()
 	return nil
 }

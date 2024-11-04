@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -59,6 +60,8 @@ func fetch_page_content(job *river.Job[common.FetchArgs]) (map[string]string, er
 		return nil, fmt.Errorf("non-indexable MIME type: %s", url.String())
 	}
 
+	// FIXME
+	// This eats RAM.
 	get_resp, err := retryablehttp.Get(url.String())
 	if err != nil {
 		zap.L().Fatal("cannot GET content",
@@ -67,6 +70,12 @@ func fetch_page_content(job *river.Job[common.FetchArgs]) (map[string]string, er
 	}
 
 	zap.L().Debug("successful GET response")
+
+	// Try copying things into a file...
+	// tempFile := uuid.NewString()
+	// outFile, err := os.Create(tempFile)
+	// defer func() { outFile.Close(); os.Remove(tempFile) }()
+	// _, err = io.Copy(outFile, get_resp.Body)
 
 	content, err := io.ReadAll(get_resp.Body)
 	get_resp.Body.Close()
@@ -105,6 +114,9 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[common.FetchArgs]
 	// Check the cache.
 	// We don't want to do anything if this is in the recently visited cache.
 	zap.L().Debug("working", zap.String("url", host_and_path(job)))
+
+	// Will aggressive GC keep us under the RAM limit?
+	runtime.GC()
 
 	cache_key := host_and_path(job)
 	if _, found := recently_visited_cache.Get(cache_key); found {

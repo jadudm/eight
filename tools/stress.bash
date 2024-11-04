@@ -4,8 +4,8 @@
 # ./stress.bash N
 # where `N` is the number of stressors to run in parallel.
  
-for i in $(seq $1)
+for i in $(seq $2)
 do
   echo $i
-  python stress_the_search.py jadud.com 1000 &
+  python stress_the_search.py $1 1000 &
 done
