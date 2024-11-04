@@ -1,0 +1,320 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/static/assets/img/favicons/icon_logo.svg" />
+  <link rel="stylesheet" href="/static/assets/css/uswds.css" media="all" type="text/css">
+</head>
+
+<body>
+  <a class="usa-skipnav" href="#main-content">Skip to main content</a>
+  <div class="usa-overlay"></div>
+  <div class="usa-section">
+    <div class="grid-container">
+      <div class="grid-row grid-gap">
+        <div class="usa-layout-docs__sidenav display-none desktop:display-block desktop:grid-col-3">
+          <nav aria-label="Secondary navigation">
+            <ul class="usa-sidenav" id="database-list">
+              <li class="usa-sidenav__item">
+                <a href="javascript:void(0);">Parent link</a>
+              </li>
+            </ul>
+
+          </nav>
+          <div id="stats"></div>
+        </div>
+        <main class="desktop:grid-col-9 usa-prose" id="main-content">
+          <h1>Search some things</h1>
+          <p class="usa-intro">
+            This is a search engine in under 3000 lines of code.
+          </p>
+
+          <section aria-label="Big search component">
+            <label class="usa-sr-only" for="search-field-en-big">Search</label>
+            <input class="usa-input" id="six-search" type="six-search" name="six-search" />
+            <br />
+            <button class="usa-button" id="six-button">
+              <span class="usa-search__submit-text">Search</span>
+            </button>
+            <ol id="six-list"></ol>
+          </section>
+        </main>
+      </div>
+
+
+      <script>
+
+
+        function DoTheSearch() {
+          site_url = "{HOST}"
+          console.log(site_url);
+          var post_url = "{SCHEME}://{HOST}:{PORT}/api/search"
+          console.log(post_url);
+          var query = document.getElementById('six-search').value
+          console.log(query);
+
+          const data = { "terms": query, "host": "{SEARCH_HOST}" }
+
+          fetch(post_url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          })
+            .then(response => {
+
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+
+              return response.json();
+            })
+            .then(userData => {
+              // Process the retrieved user data
+              document.getElementById("six-list").innerHTML = "";
+
+              var list = document.getElementById('six-list');
+
+              var stats = document.getElementById('stats')
+              stats.innerHTML = "";
+              query_time = userData.elapsed;
+              bold(stats, "This query")
+              statPara(stats, "Query time", nanoToMillis(query_time), "ms")
+              AllTheStats(stats)
+
+              for (var k in userData.results) {
+                var r = userData.results[k];
+                if (r.path.length > 0) {
+                  var entry = document.createElement('li');
+                  var h = "<a href='https://{SEARCH_HOST}" + r.path + "' target='_blank'>" + r.path + "</a>"
+                  h += "<br/>" + r.snippet
+                  entry.innerHTML = h
+                  list.appendChild(entry);
+
+                }
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+        };
+
+        function statPara(stats, tag, value, units) {
+          var elapsedp = document.createElement('p')
+          elapsedp.classList.add("margin-left-1")
+          if (value == null || Number.isNaN(value)) {
+            value = "<i>no data</i>"
+            units = ""
+          }
+            elapsedp.innerHTML = tag + ": " + value + " " + units
+
+            stats.appendChild(elapsedp)
+        }
+
+        function nanoToMillis(v) {
+          v = Math.round(v / 100000)
+          v = v / 10
+          return v
+        }
+
+        function AllTheStats(stats) {
+          site_url = "{HOST}"
+          var get_url = "{SCHEME}://{HOST}:{PORT}/api/stats"
+          fetch(get_url, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          })
+            .then(response => {
+
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(data => {
+              // Summary stats are at the key `stats`
+              if ("stats" in data) {
+                bold(stats, "Engine-wide")
+                statPara(stats, "Avg. query time", nanoToMillis(data["stats"]["average_query_time"]), "ms")
+                statPara(stats, "Queries", data["stats"]["queries"], "")
+              }
+
+              stats.appendChild(document.createElement('hr'))
+
+              for (domain of data["hosted_domains"]) {
+                console.log(domain, "{SEARCH_HOST}")
+                if (domain == "{SEARCH_HOST}") {
+                  domain = trim_to_chars(domain, 32)
+                  bold(stats, "On " + domain)
+                  statPara(stats, "Pages indexed", data["{SEARCH_HOST}"]["pages"], "")
+                  statPara(stats, "Avg. query time", nanoToMillis(data["{SEARCH_HOST}"]["average_query_time"]), "ms")
+                  statPara(stats, "Queries", data["{SEARCH_HOST}"]["queries"], "")
+
+                  top_queries = []
+                  console.log("DATA", data)
+                  for (const key in data["{SEARCH_HOST}"]) {
+                    if (key.startsWith("term:")) {
+                      v = data["{SEARCH_HOST}"][key]
+                      t = key.replace("term:", "")
+                      if (t.length >= 2) {
+                        top_queries.push([t, v])
+                      }
+                    }
+                  }
+
+                  if (top_queries != []) {
+
+                    bold(stats, "Top queries")
+                    top_queries.sort(function (a, b) { return a[1] - b[1] }).reverse()
+                    console.log(top_queries)
+                    max = top_queries.length
+                    if (max > 3) {
+                      max =  3 
+                    }
+                    for (let step = 0; step < max; step++) {
+                      statPara(stats, top_queries[step][0], top_queries[step][1], "")
+                    }
+                  }
+                }
+              }
+
+            })
+        }
+
+        function trim_to_chars(domain, n) {
+          if (domain.length >= n) {
+            first = domain.substr(0, 12)
+            last = domain.substr(-12)
+            return first + "..." + last
+          } else {
+            return domain
+          }
+        }
+
+        function bold(parent, msg) {
+          e = document.createElement('p')
+                    b = document.createElement('b')
+                    b.innerHTML = msg
+                    e.appendChild(b)
+                    parent.appendChild(e)
+        }
+
+        function getSortedHashDesc(inputHash) {
+          var resultHash = {};
+
+          var keys = Object.keys(inputHash);
+          keys.sort(function (a, b) {
+            return inputHash[a] - inputHash[b]
+          }).reverse().forEach(function (k) {
+            resultHash[k] = inputHash[k];
+          });
+          return resultHash;
+        }
+
+        function getSortedHashAsc(inputHash) {
+          var resultHash = {};
+
+          var keys = Object.keys(inputHash);
+          keys.sort(function (a, b) {
+            return inputHash[a] - inputHash[b]
+          }).forEach(function (k) {
+            resultHash[k] = inputHash[k];
+          });
+          return resultHash;
+        }
+
+        function HandleTheKeyboardClicks() {
+          var key = window.event.keyCode;
+          // If the user has pressed enter
+          if ((key === 13) || (key === 32)) {
+            DoTheSearch();
+          }
+          return true;
+        }
+
+        function GetDatabases(next) {
+          var post_url = "{SCHEME}://{HOST}:{PORT}/api/databases"
+          fetch(post_url, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(responseData => {
+              console.log('Response Data:', responseData);
+              document.getElementById("database-list").innerHTML = "";
+              var list = document.getElementById('database-list');
+              for (var k in responseData.databases) {
+                var db = responseData.databases[k];
+                var entry = document.createElement('li');
+                entry.classList.add("usa-sidenav__item")
+                if ("{SITE_HOST}" === db) {
+                  entry.classList.add("usa-current");
+                }
+                var link = document.createElement('a')
+                link.innerHTML = trim_to_chars(db, 32)
+                link.setAttribute("href", "{SCHEME}://{HOST}:{PORT}/search/" + db)
+                entry.appendChild(link)
+                list.appendChild(entry);
+                console.log(entry);
+               
+              }
+              if (next && (next != null)) {
+                  next(responseData)
+                }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+        };
+
+
+        function RedirectAndShow(data) {
+          console.log("the_databases", data)
+          loc = window.location.href
+          console.log(loc, loc.endsWith("start"), data["databases"].length)
+          if (loc.endsWith("start") && data["databases"].length > 0) {
+            console.log("REDIRECTING")
+            window.location.href = data["databases"][0]
+          }
+          var stats = document.getElementById('stats')
+          AllTheStats(stats);
+        }
+        function DoAllTheThings() {
+          GetDatabases(RedirectAndShow);
+        }
+
+
+        document.getElementById("six-search").onkeypress = HandleTheKeyboardClicks;
+        document.getElementById("six-button").onclick = DoTheSearch;
+        window.onload = DoAllTheThings;
+
+
+      </script>
+
+    </div>
+  </div>
+  <div class="usa-identifier">
+    <section class="usa-identifier__section usa-identifier__section--usagov"
+      aria-label="U.S. government information and services">
+      <div class="usa-identifier__container">
+        <div class="usa-identifier__usagov-description">
+          Looking for U.S. government information and services?
+        </div>
+        <a href="https://www.usa.gov/" class="usa-link">Visit USA.gov</a>
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>

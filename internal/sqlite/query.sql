@@ -23,3 +23,5 @@ SELECT path, snippet(site_index, 2, '<b>', '</b>', '...', 16)
     ORDER BY rank
     LIMIT ?;
 
+-- name: CountSiteIndex :one
+SELECT count(*) FROM site_index;

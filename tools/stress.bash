@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # use by calling
-# ./stress.bash N
+# ./stress.bash <host> <N>
 # where `N` is the number of stressors to run in parallel.
  
 for i in $(seq $2)

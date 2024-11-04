@@ -20,3 +20,12 @@ variable cf_org_name {
 variable api_key {
   sensitive = true
 }
+
+
+variable zap_debug_level {
+  default = "info"
+}
+
+variable gin_debug_level {
+  default = "release"
+}

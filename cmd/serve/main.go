@@ -41,13 +41,16 @@ func ServeHost(c *gin.Context) {
 }
 
 func MultiStatsHandler(c *gin.Context) {
-	dbs := listHostedDOmains()
+	dbs := listHostedDomains()
 	res := make(map[string]any)
 	base_stats := common.NewBaseStats("serve")
 	res["stats"] = base_stats.GetAll()
 	for _, db := range dbs {
 		st := common.NewBaseStats(db)
-		res[db] = st.GetAll()
+		all := st.GetAll()
+		page_count := countPages(db)
+		all["pages"] = page_count
+		res[db] = all
 	}
 	res["hosted_domains"] = dbs
 
@@ -72,14 +75,21 @@ func main() {
 		zap.Int64("external_port", external_port),
 	)
 
+	dbs := listHostedDomains()
+
+	start := "start"
+	if len(dbs) > 0 {
+		start = dbs[0]
+	}
+
 	/////////////////////
 	// Server/API
 	engine := gin.Default()
 	engine.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "/search/start")
+		c.Redirect(http.StatusMovedPermanently, "/search/"+start)
 	})
 	engine.GET("/search", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "/search/start")
+		c.Redirect(http.StatusMovedPermanently, "/search/"+start)
 	})
 	engine.StaticFS("/static", gin.Dir(static_files_path, true))
 	engine.GET("/search/:host", ServeHost)

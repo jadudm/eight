@@ -17,9 +17,7 @@ build: clean generate
 	cd cmd/pack ; make build
 	cd cmd/serve ; make build
 	cd cmd/walk ; make build
-	cd assets ; rm -rf static ; unzip static.zip
-	cd cmd/serve ; cp index.html ../../assets/
-	cd cmd/serve ; cp index.html ../../assets/static
+	cd assets ; rm -rf static/assets ; unzip static.zip
 
 .PHONY: up
 up: build

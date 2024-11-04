@@ -69,12 +69,12 @@ serve: app
 	cp ../assets/apt.yml app/apt.yml
 	cp ../assets/static.zip app/static.zip
 	cd app ; unzip static.zip ; rm static.zip 
-	cp ../cmd/serve/index.html app/static/index.html
 	mkdir app/databases ;
 	cd app ; zip -r -X ../zips/serve.zip . \
 		-x assets/databases/*sqlite* \
 		-x assets/static.zip \
 		-x terraform/*
+	cp ../assets/static/index.html app/static/index.html
 
 .PHONY: walk
 walk: app
