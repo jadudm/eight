@@ -4,6 +4,7 @@ import click
 from pprint import pprint
 import time
 from datetime import timedelta
+import os
 
 words = []
 
@@ -12,6 +13,10 @@ words = []
 @click.argument("host")
 @click.argument("queries", default=1000)
 def maine(host, queries):
+
+    search_host = os.getenv("SEARCH_HOST")
+    if search_host == None:
+        search_host = "http://localhost:10004/api"
 
     session = R.Session()
     adapter = R.adapters.HTTPAdapter(pool_connections=100, pool_maxsize=100)
@@ -25,16 +30,14 @@ def maine(host, queries):
             ch = random.choice(words)
             ch = ch.strip()
             terms += ch + " "
-        session.post(
-            "http://localhost:10004/api/search", json={"terms": terms, "host": host}
-        )
+        session.post(search_host + "/search", json={"terms": terms, "host": host})
 
     duration = timedelta(seconds=time.perf_counter() - start)
     print(f"queries: {queries}")
     print(f"elapsed time: {duration}")
     print(f"time/query: {duration/queries}")
 
-    res = R.get("http://localhost:10004/api/stats")
+    res = R.get(search_host + "/stats")
     pprint(res.json()["stats"])
 
 
