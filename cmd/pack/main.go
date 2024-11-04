@@ -38,13 +38,9 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 		case <-timeout.C:
 			// Every <timeout> seconds, we'll see if anyone has a clock that is greater,
 			// which will mean nothing has come through recently.
-			zap.L().Debug("finalize timeout")
+			//zap.L().Debug("finalize timeout")
 			for sqlite_filename, clock := range clocks {
 				if time.Since(clock) > TIMEOUT_DURATION {
-					//prw.EnqueueClient()
-					// FIXME: Just send it to S3 for now.
-					// This is still a bit of an MVP.
-
 					zap.L().Debug("finalize streaming",
 						zap.String("sqlite_filename", sqlite_filename))
 
@@ -74,7 +70,7 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 				}
 			}
 		}
-		zap.L().Debug("finalize reset")
+		//zap.L().Debug("finalize reset")
 		timeout.Reset(TIMEOUT_DURATION)
 	}
 }

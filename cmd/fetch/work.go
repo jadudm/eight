@@ -10,7 +10,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
 	common "github.com/jadudm/eight/internal/common"
@@ -20,6 +19,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// ///////////////////////////////////
+// GLOBALS
+var last_hit sync.Map
+var last_backoff sync.Map
+
+//var worker_id atomic.Uint64
+
 func host_and_path(job *river.Job[common.FetchArgs]) string {
 	var u url.URL
 	u.Scheme = job.Args.Scheme
@@ -28,8 +34,6 @@ func host_and_path(job *river.Job[common.FetchArgs]) string {
 	return u.String()
 }
 
-var last_hit sync.Map
-
 func fetch_page_content(job *river.Job[common.FetchArgs]) (map[string]string, error) {
 	url := url.URL{
 		Scheme: job.Args.Scheme,
@@ -37,17 +41,10 @@ func fetch_page_content(job *river.Job[common.FetchArgs]) (map[string]string, er
 		Path:   job.Args.Path,
 	}
 
+	// This holds us up so that the parallel workers don't spam the host.
+	common.BackoffLoop(job.Args.Host, polite_sleep_milliseconds, &last_hit, &last_backoff)
+
 	zap.L().Debug("checking the hit cache")
-	if t, ok := last_hit.Load(job.Args.Host); ok {
-		if time.Since(t.(time.Time)) < polite_sleep_milliseconds {
-			zap.L().Debug("sleeping",
-				zap.String("host", job.Args.Host),
-				zap.String("path", job.Args.Path))
-			time.Sleep(polite_sleep_milliseconds)
-		}
-	}
-	zap.L().Debug("not in the hit cache")
-	last_hit.Store(job.Args.Host, time.Now())
 
 	headResp, err := retryablehttp.Head(url.String())
 	if err != nil {

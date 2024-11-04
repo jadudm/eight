@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
-	"os"
 
 	"github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/env"
@@ -25,7 +23,11 @@ func (w *ServeWorker) Work(ctx context.Context, job *river.Job[common.ServeArgs]
 
 	// Writes to the local filesystem.
 	destination := databases_file_path + "/" + sqlite_filename
-	log.Println(destination, "<-", sqlite_filename, os.Getenv("PWD"))
+
+	zap.L().Info("copying file to host",
+		zap.String("destination", destination),
+		zap.String("sqlite_filename", sqlite_filename),
+	)
 
 	// Downloads content to the destination
 	err := serveStorage.GetFile(sqlite_filename, destination)

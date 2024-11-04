@@ -12,7 +12,7 @@ import (
 )
 
 var recently_visited_cache *cache.Cache
-var polite_sleep_milliseconds time.Duration
+var polite_sleep_milliseconds int64
 
 func main() {
 	env.InitGlobalEnv()
@@ -29,7 +29,7 @@ func main() {
 
 	// Pre-compute/lookup the sleep duration for backoff
 	millis := service.GetParamInt64("polite_sleep_milliseconds")
-	polite_sleep_milliseconds = time.Duration(millis * int64(time.Millisecond))
+	polite_sleep_milliseconds = millis
 
 	recently_visited_cache = cache.New(
 		time.Duration(service.GetParamInt64("polite_cache_default_expiration_minutes"))*time.Minute,

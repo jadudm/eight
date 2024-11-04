@@ -26,7 +26,7 @@ up: build
 	docker compose -f compiled.yaml up
 
 .PHONY: run
-run: generate clean
+run: clean generate
 	cd assets ; unzip -o static.zip > /dev/null 2>&1
 	docker compose up
 

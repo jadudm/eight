@@ -44,6 +44,5 @@ def maine(host, queries):
 if __name__ in "__main__":
     with open("random_words.txt") as fp:
         for w in fp:
-            if len(w.strip()) > 3:
-                words.append(w.strip())
+            words.append(w.strip())
     maine()

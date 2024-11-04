@@ -32,7 +32,7 @@ services:
       ENV: "DOCKER"
       PORT: 8888
       API_KEY: lego
-      DEBUG_LEVEL: info
+      DEBUG_LEVEL: debug
       GIN_MODE: debug
     restart: always
 
@@ -73,7 +73,7 @@ services:
     environment:
       ENV: "DOCKER"
       PORT: 8888
-      DEBUG_LEVEL: debug
+      DEBUG_LEVEL: info
     restart: always
 
   #-----------------------------------------------------
@@ -140,7 +140,7 @@ services:
       start_period: 60s
     environment:
       ENV: "DOCKER"
-      DEBUG_LEVEL: "debug"
+      DEBUG_LEVEL: info
       PORT: 8888
     restart: always
 
@@ -174,7 +174,7 @@ services:
       start_period: 60s
     environment:
       ENV: "DOCKER"
-      DEBUG_LEVEL: "debug"
+      DEBUG_LEVEL: info
       PORT: 8888
     restart: always
 
