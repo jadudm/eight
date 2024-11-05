@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -48,24 +49,34 @@ func listHostedDomains() []string {
 	return dbs
 }
 
-func countPages(domain string) int64 {
+// Opening and closing the DB for this is slow.
+// For the MVP, just cache it.
+var cached_counts sync.Map
 
+func countPages(domain string) int64 {
 	s, _ := env.Env.GetUserService("serve")
 	database_files_path := s.GetParamString("database_files_path")
 
 	ctx := context.Background()
 	sqlite_filename := database_files_path + "/" + domain + ".sqlite"
-	db, err := sql.Open("sqlite3", sqlite_filename)
-	if err != nil {
-		zap.L().Panic("cannot open database", zap.String("sqlite_filename", sqlite_filename))
+
+	if cached, ok := cached_counts.Load(domain); ok {
+		return cached.(int64)
+	} else {
+		new_db, err := sql.Open("sqlite3", sqlite_filename)
+		if err != nil {
+			zap.L().Panic("cannot open database", zap.String("sqlite_filename", sqlite_filename))
+		}
+		defer new_db.Close()
+		queries := search_db.New(new_db)
+		pages, err := queries.CountSiteIndex(ctx)
+		if err != nil {
+			zap.L().Panic("could not get pages in database", zap.String("sqlite_filename", sqlite_filename))
+		}
+		cached_counts.Store(domain, pages)
+		return pages
 	}
 
-	queries := search_db.New(db)
-	pages, err := queries.CountSiteIndex(ctx)
-	if err != nil {
-		zap.L().Panic("could not get pages in database", zap.String("sqlite_filename", sqlite_filename))
-	}
-	return pages
 }
 
 func DatabasesHandler(c *gin.Context) {

@@ -160,6 +160,10 @@ services:
     build: 
       context: .
       dockerfile: ./cmd/serve/Dockerfile
+    deploy:
+      resources:
+        limits:
+          memory: 64M
     entrypoint: /home/vcap/app/cmd/serve/service.exe
     volumes:
       - type: bind
