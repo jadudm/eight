@@ -72,7 +72,7 @@ resource "cloudfoundry_app" "fetch" {
   path                 = "zips/fetch.zip"
   source_code_hash     = filesha256("zips/fetch.zip")
   disk_quota           = 512
-  memory               = 256
+  memory               = var.service_fetch_ram
   instances            = 1
   strategy             = "rolling"
   timeout              = 200
@@ -110,7 +110,7 @@ resource "cloudfoundry_app" "extract" {
   path                 = "zips/extract.zip"
   source_code_hash     = filesha256("zips/extract.zip")
   disk_quota           = 512
-  memory               = 256
+  memory               = var.service_extract_ram
   instances            = 1
   strategy             = "rolling"
   timeout              = 200
@@ -151,7 +151,7 @@ resource "cloudfoundry_app" "pack" {
   path                 = "zips/pack.zip"
   source_code_hash     = filesha256("zips/pack.zip")
   disk_quota           = 512
-  memory               = 128
+  memory               = var.service_pack_ram
   instances            = 1
   strategy             = "rolling"
   timeout              = 200
@@ -199,7 +199,7 @@ resource "cloudfoundry_app" "serve" {
   path                 = "zips/serve.zip"
   source_code_hash     = filesha256("zips/serve.zip")
   disk_quota           = 512
-  memory               = 64
+  memory               = var.service_serve_ram
   instances            = 1
   strategy             = "rolling"
   timeout              = 200
@@ -240,7 +240,7 @@ resource "cloudfoundry_app" "walk" {
   path                 = "zips/walk.zip"
   source_code_hash     = filesha256("zips/walk.zip")
   disk_quota           = 512
-  memory               = 128
+  memory               = var.service_walk_ram
   instances            = 1
   strategy             = "rolling"
   timeout              = 200
