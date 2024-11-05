@@ -1,22 +1,6 @@
+
 EIGHT_SERVICES:
   user-provided:
-    - name: "fetch"
-      credentials:
-        port: 8888
-      parameters:
-        workers: 10
-        polite_sleep_milliseconds: 2000
-        polite_cache_default_expiration_minutes: 60
-        polite_cache_cleanup_interval_minutes: 10
-    - name: "walk"
-      credentials:
-        port: 8888
-      parameters:
-        workers: 10
-        cache-ttl-minutes: 30
-        cache-ttl-seconds: 0
-        polite_cache_default_expiration_minutes: 60
-        polite_cache_cleanup_interval_minutes: 10
     - name: "extract"
       credentials:
         port: 8888
@@ -25,11 +9,29 @@ EIGHT_SERVICES:
         extract_pdf: true
         extract_html: true
         walkabout: true
+    - name: "fetch"
+      credentials:
+        port: 8888
+      parameters:
+        workers: 10
+        polite_sleep_milliseconds: 2000
+        polite_cache_default_expiration_minutes: 600
+        polite_cache_cleanup_interval_minutes: 120
+    - name: "walk"
+      credentials:
+        port: 8888
+      parameters:
+        workers: 10
+        cache-ttl-minutes: 30
+        cache-ttl-seconds: 0
+        polite_cache_default_expiration_minutes: 600
+        polite_cache_cleanup_interval_minutes: 120
     - name: "pack"
       credentials:
         port: 8888
       parameters:
         workers: 10
+        packing_timeout_seconds: 180
     - name: "serve"
       credentials:
         port: 8888

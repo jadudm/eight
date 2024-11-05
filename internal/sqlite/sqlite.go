@@ -64,6 +64,7 @@ func (pt *PackTable) PrepForNetwork() {
 	// https://turso.tech/blog/something-you-probably-want-to-know-about-if-youre-using-sqlite-in-golang-72547ad625f1
 	pt.DB.ExecContext(pt.Context, "PRAGMA wal_checkpoint(TRUNCATE)")
 	pt.DB.ExecContext(pt.Context, "VACUUM")
+	pt.DB.Close()
 }
 
 func SqliteFilename(db_filename string) string {

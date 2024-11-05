@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/queueing"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	"go.uber.org/zap"
@@ -30,6 +31,8 @@ type ExtractWorker struct {
 }
 
 func InitializeQueues() {
+	queueing.InitializeRiverQueues()
+
 	var err error
 	ctx, extractPool, workers := common.CommonQueueInit()
 	_, walkPool, _ = common.CommonQueueInit()

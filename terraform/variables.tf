@@ -31,7 +31,7 @@ variable gin_debug_level {
 }
 
 variable service_extract_ram {
-  default = 320
+  default = 256
 }
 
 variable service_fetch_ram {
@@ -39,7 +39,7 @@ variable service_fetch_ram {
 }
 
 variable service_pack_ram {
-  default = 192
+  default = 256
 }
 
 variable service_serve_ram {
@@ -47,5 +47,5 @@ variable service_serve_ram {
 }
 
 variable service_walk_ram {
-  default = 192
+  default = 128
 }

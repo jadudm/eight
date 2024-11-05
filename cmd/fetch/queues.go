@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	common "github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/env"
+	"github.com/jadudm/eight/internal/queueing"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	"go.uber.org/zap"
@@ -29,6 +30,8 @@ type FetchWorker struct {
 }
 
 func InitializeQueues() {
+	queueing.InitializeRiverQueues()
+
 	ctx, fP, workers := common.CommonQueueInit()
 	_, eP, _ := common.CommonQueueInit()
 	_, wP, _ := common.CommonQueueInit()

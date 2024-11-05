@@ -11,6 +11,7 @@ import (
 	"github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/kv"
+	"github.com/jadudm/eight/internal/queueing"
 	"github.com/riverqueue/river"
 	"go.uber.org/zap"
 )
@@ -84,9 +85,10 @@ func CheckS3ForDatabases(storage kv.S3) {
 
 func main() {
 	env.InitGlobalEnv()
-	InitializeQueues()
 	serveStorage = kv.NewKV("serve")
+	InitializeQueues()
 	CheckS3ForDatabases(serveStorage)
+	queueing.InitializeRiverQueues()
 
 	s, _ := env.Env.GetUserService("serve")
 	static_files_path := s.GetParamString("static_files_path")

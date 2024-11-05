@@ -9,7 +9,7 @@ Experiment eight is about getting some details closer to "right."
 In the top directory, first build the base/build container:
 
 ```
-make build
+make docker
 ```
 
 Then, run the stack.

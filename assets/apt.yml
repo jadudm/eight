@@ -2,3 +2,5 @@
 packages:
   - libpoppler-glib-dev
   - poppler-utils
+  - sqlite3
+  - sqlite3-tools

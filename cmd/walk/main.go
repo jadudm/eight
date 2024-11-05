@@ -29,8 +29,9 @@ func get_ttl() int64 {
 
 func main() {
 	env.InitGlobalEnv()
-	InitializeQueues()
 	InitializeStorage()
+	InitializeQueues()
+
 	log.Println("environment initialized")
 	service, _ := env.Env.GetUserService("walk")
 

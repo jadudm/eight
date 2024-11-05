@@ -72,7 +72,8 @@ services:
     environment:
       PGWEB_DATABASE_URL: postgresql://postgres@queue-db:5432/postgres?sslmode=disable
     depends_on:
-      - queue-db
+      queue-db:
+        condition: service_healthy
 
 volumes:
   queue-data:

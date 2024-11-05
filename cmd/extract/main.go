@@ -11,10 +11,10 @@ import (
 
 func main() {
 	env.InitGlobalEnv()
-	InitializeQueues()
 	InitializeStorage()
-
+	InitializeQueues()
 	log.Println("environment initialized")
+
 	routers := common.InitializeAPI()
 
 	zap.L().Info("listening to the music of the spheres",

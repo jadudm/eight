@@ -45,10 +45,13 @@ type Service struct {
 	Parameters  map[string]interface{} `mapstructure:"parameters"`
 }
 
+// FIXME: This should be string, err
 func (s *Service) CredentialString(key string) string {
 	if v, ok := s.Credentials[key]; ok {
 		return v.(string)
 	} else {
+		zap.L().Error("cannot find credential for key",
+			zap.String("key", key))
 		return fmt.Sprintf("NOVAL:%s", v)
 	}
 }
@@ -57,6 +60,8 @@ func (s *Service) CredentialInt(key string) int64 {
 	if v, ok := s.Credentials[key]; ok {
 		return int64(v.(int))
 	} else {
+		zap.L().Error("cannot find credential for key",
+			zap.String("key", key))
 		return -1
 	}
 }

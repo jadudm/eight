@@ -28,8 +28,10 @@ run: clean generate
 	cd assets ; unzip -o static.zip > /dev/null 2>&1
 	docker compose up
 
+# I need to delete_all every time, because there is not enough RAM
+# in the sandbox to rolling deploy
 .PHONY: terraform
-terraform: build
+terraform: delete_all build
 	cd terraform ; make apply_all
 
 .PHONY: cloc
@@ -53,3 +55,8 @@ delete_walk:
 
 .PHONY: delete_all
 delete_all: delete_extract delete_fetch delete_pack delete_serve delete_walk
+
+.PHONY: docker_full_clean
+docker_full_clean:
+	-docker stop $(docker ps -a -q)
+	-docker rm $(docker ps -a -q)

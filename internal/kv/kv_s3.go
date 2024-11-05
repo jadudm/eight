@@ -37,6 +37,8 @@ func NewKV(bucket_name string) S3 {
 		log.Fatal("KV INVALID BUCKET NAME ", bucket_name)
 	}
 
+	// Check if we already have this in the map, so reconnects don't create
+	// new S3 objects/etc.
 	if s3, ok := buckets.Load(bucket_name); ok {
 		zap.L().Debug("in the sync map", zap.String("bucket_name", bucket_name))
 		return s3.(S3)
@@ -53,6 +55,11 @@ func NewKV(bucket_name string) S3 {
 		zap.L().Error("could not get bucket from config", zap.String("bucket_name", bucket_name))
 		os.Exit(1)
 	}
+
+	zap.L().Debug("got reference to bucket from vcap",
+		zap.String("name", b.Name),
+		zap.String("bucket", b.CredentialString("bucket")),
+		zap.String("region", b.CredentialString("region")))
 
 	s3.Bucket = b
 
@@ -79,8 +86,9 @@ func NewKV(bucket_name string) S3 {
 
 	found, err := minioClient.BucketExists(ctx, s3.Bucket.CredentialString("bucket"))
 	if err != nil {
-		log.Println("KV could not check if bucket exists ", bucket_name)
-		log.Fatal(err)
+		//log.Println("KV could not check if bucket exists ", bucket_name)
+		//log.Fatal(err)
+		zap.L().Fatal("could not check if bucket exists", zap.String("bucket_name", bucket_name))
 	}
 
 	if found {
@@ -89,6 +97,7 @@ func NewKV(bucket_name string) S3 {
 		// Make sure to insert the metadata into the sync.Map
 		// when we find a bucket that already exists.
 		buckets.Store(bucket_name, s3)
+		zap.L().Info("found pre-existing bucket in S3")
 		return s3
 	}
 
@@ -105,14 +114,14 @@ func NewKV(bucket_name string) S3 {
 			log.Println(err)
 			log.Fatal("KV could not create bucket ", bucket_name)
 		}
-	} else {
-		log.Println("KV skipping bucket creation in cloud env")
-	}
+	} // Skip container creation in CF
 
+	// Put a pointer to this object in our syncmap.
 	buckets.Store(bucket_name, &s3)
 
 	loaded, _ := buckets.Load(bucket_name)
-	log.Println("KV bucket at creation time", bucket_name, loaded)
+	zap.L().Info("bucket ready", zap.String("bucket_name", loaded.(*S3).Bucket.Name))
+
 	return s3
 }
 
