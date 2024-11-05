@@ -148,9 +148,9 @@ func (s3 *S3) Get(key string) (Object, error) {
 	}
 	return Obj{
 		info: &ObjInfo{
-			key:  key,
-			size: int64(len(raw)),
-			mime: mime,
+			Key:  key,
+			Size: int64(len(raw)),
+			Mime: mime,
 		},
 		value: jsonm,
 	}, nil
@@ -179,10 +179,13 @@ func (s3 *S3) List(prefix string) ([]*ObjInfo, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	objectCh := s3.MinioClient.ListObjects(ctx, s3.Bucket.CredentialString("bucket"), minio.ListObjectsOptions{
-		Prefix:    prefix,
-		Recursive: false,
-	})
+	objectCh := s3.MinioClient.ListObjects(
+		ctx,
+		s3.Bucket.CredentialString("bucket"),
+		minio.ListObjectsOptions{
+			Prefix:    prefix,
+			Recursive: false,
+		})
 
 	objects := make([]*ObjInfo, 0)
 	for object := range objectCh {

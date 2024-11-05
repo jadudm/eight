@@ -11,6 +11,7 @@ import (
 	"github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/kv"
+	"github.com/riverqueue/river"
 	"go.uber.org/zap"
 )
 
@@ -57,10 +58,35 @@ func MultiStatsHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+func CheckS3ForDatabases(storage kv.S3) {
+	objects, err := storage.List("")
+	if err != nil {
+		zap.L().Error("problem listing objects")
+	}
+	// For each object, queue ourselves to download the file.
+	// Why? Because we have the machinery in the worker, and it
+	// might as well do the work that way.
+	for _, obj := range objects {
+		zap.L().Info("downloading database at startup",
+			zap.String("object_key", obj.Key), zap.Int64("size", obj.Size))
+		ctx, tx := common.CtxTx(servePool)
+		serveClient.InsertTx(ctx, tx, common.ServeArgs{
+			Filename: obj.Key,
+		}, &river.InsertOpts{Queue: "serve"})
+		if err := tx.Commit(ctx); err != nil {
+			tx.Rollback(ctx)
+			zap.L().Panic("cannot commit insert tx",
+				zap.String("filename", obj.Key))
+		}
+	}
+
+}
+
 func main() {
 	env.InitGlobalEnv()
 	InitializeQueues()
 	serveStorage = kv.NewKV("serve")
+	CheckS3ForDatabases(serveStorage)
 
 	s, _ := env.Env.GetUserService("serve")
 	static_files_path := s.GetParamString("static_files_path")

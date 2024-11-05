@@ -108,9 +108,9 @@
             value = "<i>no data</i>"
             units = ""
           }
-            elapsedp.innerHTML = tag + ": " + value + " " + units
+          elapsedp.innerHTML = tag + ": " + value + " " + units
 
-            stats.appendChild(elapsedp)
+          stats.appendChild(elapsedp)
         }
 
         function nanoToMillis(v) {
@@ -146,8 +146,9 @@
               stats.appendChild(document.createElement('hr'))
 
               for (domain of data["hosted_domains"]) {
-                console.log(domain, "{SEARCH_HOST}")
-                if (domain == "{SEARCH_HOST}") {
+                compared = (domain === "{SEARCH_HOST}")
+                console.log("compare ===", domain, "{SEARCH_HOST}", compared)
+                if (compared) {
                   domain = trim_to_chars(domain, 32)
                   bold(stats, "On " + domain)
                   statPara(stats, "Pages indexed", data["{SEARCH_HOST}"]["pages"], "")
@@ -166,14 +167,14 @@
                     }
                   }
 
-                  if (top_queries != []) {
+                  if (top_queries.length > 0) {
 
                     bold(stats, "Top queries")
                     top_queries.sort(function (a, b) { return a[1] - b[1] }).reverse()
                     console.log(top_queries)
                     max = top_queries.length
                     if (max > 3) {
-                      max =  3 
+                      max = 3
                     }
                     for (let step = 0; step < max; step++) {
                       statPara(stats, top_queries[step][0], top_queries[step][1], "")
@@ -197,10 +198,10 @@
 
         function bold(parent, msg) {
           e = document.createElement('p')
-                    b = document.createElement('b')
-                    b.innerHTML = msg
-                    e.appendChild(b)
-                    parent.appendChild(e)
+          b = document.createElement('b')
+          b.innerHTML = msg
+          e.appendChild(b)
+          parent.appendChild(e)
         }
 
         function getSortedHashDesc(inputHash) {
@@ -258,20 +259,22 @@
                 var db = responseData.databases[k];
                 var entry = document.createElement('li');
                 entry.classList.add("usa-sidenav__item")
-                if ("{SITE_HOST}" === db) {
-                  entry.classList.add("usa-current");
-                }
+                compared = ("{SEARCH_HOST}" === db)
                 var link = document.createElement('a')
-                link.innerHTML = trim_to_chars(db, 32)
+                if (compared) {
+                  entry.classList.add("usa-current");
+                } else {
+                }
+                link.innerHTML = trim_to_chars(db, 30)
                 link.setAttribute("href", "{SCHEME}://{HOST}:{PORT}/search/" + db)
                 entry.appendChild(link)
                 list.appendChild(entry);
                 console.log(entry);
-               
+
               }
               if (next && (next != null)) {
-                  next(responseData)
-                }
+                next(responseData)
+              }
             })
             .catch(error => {
               console.error('Error:', error);

@@ -18,15 +18,15 @@ type Object interface {
 }
 
 type ObjInfo struct {
-	key  string
-	size int64
-	mime string
+	Key  string
+	Size int64
+	Mime string
 }
 
 func NewObjInfo(key string, size int64) *ObjInfo {
 	return &ObjInfo{
-		key:  key,
-		size: size,
+		Key:  key,
+		Size: size,
 	}
 }
 
@@ -53,16 +53,16 @@ func NewObject(key string, value JSON) *Obj {
 
 	return &Obj{
 		info: &ObjInfo{
-			key:  key,
-			size: size,
-			mime: mime,
+			Key:  key,
+			Size: size,
+			Mime: mime,
 		},
 		value: value,
 	}
 }
 
 func (o Obj) GetKey() string {
-	return o.info.key
+	return o.info.Key
 }
 
 func (o Obj) GetValue(key string) string {
@@ -74,9 +74,9 @@ func (o Obj) GetJson() JSON {
 }
 
 func (o Obj) GetSize() int64 {
-	return o.info.size
+	return o.info.Size
 }
 
 func (o Obj) GetMimeType() string {
-	return o.info.mime
+	return o.info.Mime
 }
