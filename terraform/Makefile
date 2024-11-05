@@ -70,11 +70,11 @@ serve: app
 	cp ../assets/static.zip app/static.zip
 	cd app ; unzip static.zip ; rm static.zip 
 	mkdir app/databases ;
+	cp ../assets/static/index.html app/static/index.html
 	cd app ; zip -r -X ../zips/serve.zip . \
 		-x assets/databases/*sqlite* \
 		-x assets/static.zip \
 		-x terraform/*
-	cp ../assets/static/index.html app/static/index.html
 
 .PHONY: walk
 walk: app

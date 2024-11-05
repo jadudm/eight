@@ -253,8 +253,12 @@
             })
             .then(responseData => {
               console.log('Response Data:', responseData);
-              document.getElementById("database-list").innerHTML = "";
-              var list = document.getElementById('database-list');
+
+              //<ul class="usa-sidenav" id="database-list">
+              new_list = document.createElement("ul")
+              new_list.classList.add("usa-sidenav")
+
+              // var list = document.getElementById('database-list');
               for (var k in responseData.databases) {
                 var db = responseData.databases[k];
                 var entry = document.createElement('li');
@@ -268,8 +272,11 @@
                 link.innerHTML = trim_to_chars(db, 30)
                 link.setAttribute("href", "{SCHEME}://{HOST}:{PORT}/search/" + db)
                 entry.appendChild(link)
-                list.appendChild(entry);
-                console.log(entry);
+                new_list.appendChild(entry);
+                
+                list = document.getElementById("database-list")
+                list.innerHTML = "";
+                list.appendChild(new_list);
 
               }
               if (next && (next != null)) {
@@ -307,17 +314,7 @@
 
     </div>
   </div>
-  <div class="usa-identifier">
-    <section class="usa-identifier__section usa-identifier__section--usagov"
-      aria-label="U.S. government information and services">
-      <div class="usa-identifier__container">
-        <div class="usa-identifier__usagov-description">
-          Looking for U.S. government information and services?
-        </div>
-        <a href="https://www.usa.gov/" class="usa-link">Visit USA.gov</a>
-      </div>
-    </section>
-  </div>
+  
 </body>
 
 </html>
