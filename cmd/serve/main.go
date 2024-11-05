@@ -127,13 +127,8 @@ func main() {
 		v1.GET("/stats", MultiStatsHandler)
 	}
 
-	//engine.Use(static.Serve("/static", static.LocalFile(static_files_path, true)))
-
-	// Serve up the search page
-	// fs := http.FileServer(http.Dir(static_files_path))
-	// engine.Handle("/static/*", http.StripPrefix("/static/", fs))
-	// engine.Static("/static", static_files_path)
-
+	zap.L().Info("listening to the music of the spheres",
+		zap.String("port", env.Env.Port))
 	// Local and Cloud should both get this from the environment.
 	http.ListenAndServe(":"+env.Env.Port, engine)
 

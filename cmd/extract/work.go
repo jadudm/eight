@@ -31,7 +31,7 @@ func extract(obj kv.Object) {
 
 func (w *ExtractWorker) Work(ctx context.Context, job *river.Job[common.ExtractArgs]) error {
 
-	zap.L().Info("extracting", zap.String("key", job.Args.Key))
+	zap.L().Debug("extracting", zap.String("key", job.Args.Key))
 
 	obj, err := fetchStorage.Get(job.Args.Key)
 	if err != nil {

@@ -41,7 +41,7 @@ func FinalizeTimer(in <-chan *sqlite.PackTable) {
 			//zap.L().Debug("finalize timeout")
 			for sqlite_filename, clock := range clocks {
 				if time.Since(clock) > TIMEOUT_DURATION {
-					zap.L().Debug("finalize streaming",
+					zap.L().Info("packing to sqlite",
 						zap.String("sqlite_filename", sqlite_filename))
 
 					tables[sqlite_filename].PrepForNetwork()

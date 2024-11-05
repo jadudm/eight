@@ -222,13 +222,6 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[common.FetchArgs]
 		// Update the cache
 		recently_visited_cache.Set(host_and_path(job), key, 0)
 
-		// Enqueue next steps
-		// tx, err := fetchPool.Begin(ctx)
-		// if err != nil {
-		// 	zap.L().Panic("cannot init tx from pool")
-		// }
-		// defer tx.Rollback(ctx)
-
 		zap.L().Debug("inserting extract job")
 		ctx, tx := common.CtxTx(extractPool)
 		defer tx.Rollback(ctx)
@@ -247,9 +240,8 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[common.FetchArgs]
 			Key: key,
 		}, &river.InsertOpts{Queue: "walk"})
 		if err := tx2.Commit(ctx2); err != nil {
-			zap.L().Info(err.Error())
 			zap.L().Panic("cannot commit insert tx",
-				zap.String("key", key))
+				zap.String("key", key), zap.String("error", err.Error()))
 		}
 	}
 
