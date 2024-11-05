@@ -201,7 +201,7 @@ func (s3 *S3) List(prefix string) ([]*ObjInfo, error) {
 // //////////////////
 // STORE
 // Stores a k,v to the bucket
-func store(s3 *S3, key string, size int64, jsonm JSON, reader io.Reader) error {
+func store(s3 *S3, destination_key string, size int64, jsonm JSON, reader io.Reader) error {
 	mime := "octet/binary"
 
 	if jsonm != nil {
@@ -209,11 +209,11 @@ func store(s3 *S3, key string, size int64, jsonm JSON, reader io.Reader) error {
 	}
 
 	ctx := context.Background()
-	log.Println("KV store", s3.Bucket.Name, key, size)
+	log.Println("KV store", s3.Bucket.Name, destination_key, size)
 	_, err := s3.MinioClient.PutObject(
 		ctx,
 		s3.Bucket.CredentialString("bucket"),
-		key,
+		destination_key,
 		reader,
 		size,
 		minio.PutObjectOptions{
@@ -224,7 +224,7 @@ func store(s3 *S3, key string, size int64, jsonm JSON, reader io.Reader) error {
 		},
 	)
 	if err != nil {
-		log.Println("KV cannot store", key, size, jsonm)
+		log.Println("KV cannot store", destination_key, size, jsonm)
 		log.Println(err)
 	}
 	return err
@@ -236,10 +236,10 @@ func (s3 *S3) Store(key string, jsonm JSON) error {
 	return store(s3, key, size, jsonm, reader)
 }
 
-func (s3 *S3) StoreFile(key string, destination_filename string) error {
-	reader, err := os.Open(destination_filename)
+func (s3 *S3) StoreFile(destination_key string, source_filename string) error {
+	reader, err := os.Open(source_filename)
 	if err != nil {
-		log.Fatal("KV cannot open file", destination_filename)
+		log.Fatal("KV cannot open file", source_filename)
 	}
 	fi, err := reader.Stat()
 	if err != nil {
@@ -247,7 +247,7 @@ func (s3 *S3) StoreFile(key string, destination_filename string) error {
 		log.Fatal(err)
 	}
 
-	return store(s3, key, fi.Size(), make(JSON, 0), reader)
+	return store(s3, destination_key, fi.Size(), make(JSON, 0), reader)
 }
 
 ////////////////////////////

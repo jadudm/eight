@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
-	"log"
 	"maps"
 	"runtime"
 
@@ -17,19 +15,13 @@ import (
 
 func extractPdf(obj kv.Object) {
 	jsonm := obj.GetJson()
-	raw := jsonm["raw"]
+	rawFilename := jsonm["raw"]
+	// This gives us a key to a raw file in S3.
+	// The key is a UUID that ends in ".raw"
+	// use it for the local file
+	fetchStorage.GetFile(rawFilename, rawFilename)
 
-	decoded, err := base64.URLEncoding.DecodeString(raw)
-
-	if err != nil {
-		log.Println("PDF cannot Base64 decode")
-		log.Fatal(err)
-	}
-
-	// Delete the raw
-	delete(jsonm, "raw")
-
-	doc, err := poppler.Load(decoded)
+	doc, err := poppler.Open(rawFilename)
 
 	if err != nil {
 		fmt.Println("Failed to convert body to Document")

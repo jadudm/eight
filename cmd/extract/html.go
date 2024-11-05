@@ -1,10 +1,9 @@
 package main
 
 import (
-	"bytes"
-	"encoding/base64"
 	"log"
 	"maps"
+	"os"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -36,21 +35,25 @@ func extractHtml(obj kv.Object) {
 	extract_bucket := kv.NewKV("extract")
 
 	jsonm := obj.GetJson()
-	raw := jsonm["raw"]
-
-	decoded, err := base64.URLEncoding.DecodeString(raw)
+	rawFilename := jsonm["raw"]
+	// This gives us a key to a raw file in S3.
+	// The key is a UUID that ends in ".raw"
+	// use it for the local file
+	fetchStorage.GetFile(rawFilename, rawFilename)
+	rawFile, err := os.Open(rawFilename)
 	if err != nil {
-		log.Println("HTML cannot Base64 decode")
-		log.Fatal(err)
+		zap.L().Error("cannot open tempfile", zap.String("filename", rawFilename))
 	}
-	// Decoded contains a byte array of the raw HTML
-	reader := bytes.NewReader(decoded)
+	defer rawFile.Close()
+
+	//reader := bytes.NewReader(rawFile)
 	content := ""
 
 	// Delete the raw
-	delete(jsonm, "raw")
+	// (This made sense when it was a huge blob. Now it is a file path.)
+	// delete(jsonm, "raw")
 
-	doc, err := goquery.NewDocumentFromReader(reader)
+	doc, err := goquery.NewDocumentFromReader(rawFile)
 	if err != nil {
 		log.Println("HTML cannot create new document")
 		log.Fatal(err)

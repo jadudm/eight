@@ -3,13 +3,14 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"errors"
 	"log"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/google/uuid"
 	common "github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/kv"
 	"github.com/jadudm/eight/internal/util"
@@ -34,14 +35,17 @@ func go_for_a_walk(JSON kv.JSON) {
 func extract_links(JSON kv.JSON) []*url.URL {
 
 	raw := JSON["raw"]
-	decoded, err := base64.URLEncoding.DecodeString(raw)
-	if err != nil {
-		log.Println("WALK cannot Base64 decode")
-		log.Fatal(err)
-	}
-	reader := bytes.NewReader(decoded)
+	// This is a key to a file.
+	tempFilename := uuid.NewString()
 
-	doc, err := goquery.NewDocumentFromReader(reader)
+	fetchStorage.GetFile(raw, tempFilename)
+	tFile, err := os.Open(tempFilename)
+	if err != nil {
+		zap.L().Error("cannot open temporary file", zap.String("filename", tempFilename))
+	}
+	defer func() { tFile.Close(); os.Remove(tempFilename) }()
+
+	doc, err := goquery.NewDocumentFromReader(tFile)
 	if err != nil {
 		log.Println("WALK cannot convert to document")
 		log.Fatal(err)
