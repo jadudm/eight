@@ -71,7 +71,7 @@ resource "cloudfoundry_app" "fetch" {
   buildpacks            = ["https://github.com/cloudfoundry/apt-buildpack", "https://github.com/cloudfoundry/binary-buildpack.git"]
   path                 = "zips/fetch.zip"
   source_code_hash     = filesha256("zips/fetch.zip")
-  disk_quota           = 512
+  disk_quota           = var.disk_quota_l
   memory               = var.service_fetch_ram
   instances            = 1
   strategy             = "rolling"
@@ -109,7 +109,7 @@ resource "cloudfoundry_app" "extract" {
   buildpacks            = ["https://github.com/cloudfoundry/apt-buildpack", "https://github.com/cloudfoundry/binary-buildpack.git"]
   path                 = "zips/extract.zip"
   source_code_hash     = filesha256("zips/extract.zip")
-  disk_quota           = 512
+  disk_quota           = var.disk_quota_l
   memory               = var.service_extract_ram
   instances            = 1
   strategy             = "rolling"
@@ -150,7 +150,7 @@ resource "cloudfoundry_app" "pack" {
   buildpacks            = ["https://github.com/cloudfoundry/apt-buildpack", "https://github.com/cloudfoundry/binary-buildpack.git"]
   path                 = "zips/pack.zip"
   source_code_hash     = filesha256("zips/pack.zip")
-  disk_quota           = 512
+  disk_quota           = var.disk_quota_l
   memory               = var.service_pack_ram
   instances            = 1
   strategy             = "rolling"
@@ -198,7 +198,7 @@ resource "cloudfoundry_app" "serve" {
   buildpacks            = ["https://github.com/cloudfoundry/apt-buildpack", "https://github.com/cloudfoundry/binary-buildpack.git"]
   path                 = "zips/serve.zip"
   source_code_hash     = filesha256("zips/serve.zip")
-  disk_quota           = 512
+  disk_quota           = var.disk_quota_l
   memory               = var.service_serve_ram
   instances            = 1
   strategy             = "rolling"
@@ -239,7 +239,7 @@ resource "cloudfoundry_app" "walk" {
   buildpacks            = ["https://github.com/cloudfoundry/apt-buildpack", "https://github.com/cloudfoundry/binary-buildpack.git"]
   path                 = "zips/walk.zip"
   source_code_hash     = filesha256("zips/walk.zip")
-  disk_quota           = 512
+  disk_quota           = var.disk_quota_m
   memory               = var.service_walk_ram
   instances            = 1
   strategy             = "rolling"

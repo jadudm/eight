@@ -34,11 +34,12 @@ func CreatePackTable(db_filename string, JSON map[string]string) (*PackTable, er
 
 	// FIXME: Any params to the DB?
 	db, err := sql.Open("sqlite3", db_filename)
-	db.SetMaxOpenConns(1)
+	db.SetMaxOpenConns(100)
 	// https://phiresky.github.io/blog/2020/sqlite-performance-tuning/
 	db.Exec("pragma journal_mode = WAL")
 	db.Exec("pragma synchronous = normal")
-	db.Exec("pragma temp_store = memory")
+	db.Exec("pragma temp_store = file")
+	db.Exec("pragma temp_store_directory = /home/vcap/app/tmp")
 	db.Exec("pragma mmap_size = 30000000000")
 	db.Exec("pragma page_size = 32768")
 
@@ -62,6 +63,8 @@ func CreatePackTable(db_filename string, JSON map[string]string) (*PackTable, er
 
 func (pt *PackTable) PrepForNetwork() {
 	// https://turso.tech/blog/something-you-probably-want-to-know-about-if-youre-using-sqlite-in-golang-72547ad625f1
+	db, _ := sql.Open("sqlite3", pt.Filename)
+	pt.DB = db
 	pt.DB.ExecContext(pt.Context, "PRAGMA wal_checkpoint(TRUNCATE)")
 	pt.DB.ExecContext(pt.Context, "VACUUM")
 	pt.DB.Close()

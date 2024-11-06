@@ -92,33 +92,29 @@ func (w *PackWorker) Work(ctx context.Context, job *river.Job[common.PackArgs]) 
 
 	host := JSON["host"]
 
-	if _, ok := databases.Load(host); !ok {
-		table, err := sqlite.CreatePackTable(sqlite.SqliteFilename(host), JSON)
-		if err != nil {
-			log.Println("Could not create pack table for", host)
-			log.Fatal(err)
-		}
-		databases.Store(host, table)
+	pt, err := sqlite.CreatePackTable(sqlite.SqliteFilename(host), JSON)
+	if err != nil {
+		log.Println("Could not create pack table for", host)
+		log.Fatal(err)
 	}
 
-	if _pt, ok := databases.Load(host); ok {
-		pt := _pt.(*sqlite.PackTable)
-		_, err := pt.Queries.CreateSiteEntry(pt.Context, schemas.CreateSiteEntryParams{
-			Host: JSON["host"],
-			Path: JSON["path"],
-			Text: JSON["content"],
-		})
-		if err != nil {
-			log.Println("Insert into site entry table failed")
-			log.Fatal(err)
-		}
-		zap.L().Info("packed entry",
-			zap.String("database", host),
-			zap.String("path", JSON["path"]),
-			zap.Int("length", len(JSON["content"])))
-
-		ch_finalize <- pt
+	_, err = pt.Queries.CreateSiteEntry(pt.Context, schemas.CreateSiteEntryParams{
+		Host: JSON["host"],
+		Path: JSON["path"],
+		Text: JSON["content"],
+	})
+	if err != nil {
+		log.Println("Insert into site entry table failed")
+		log.Fatal(err)
 	}
+	zap.L().Info("packed entry",
+		zap.String("database", host),
+		zap.String("path", JSON["path"]),
+		zap.Int("length", len(JSON["content"])))
+
+	pt.DB.Close()
+
+	ch_finalize <- pt
 
 	// Agressively keep memory clear.
 	// GC after packing every message.

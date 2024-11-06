@@ -21,6 +21,18 @@ variable api_key {
   sensitive = true
 }
 
+variable disk_quota_s {
+  default = 256
+}
+
+variable disk_quota_m {
+  default = 512
+}
+
+variable disk_quota_l {
+  default = 1024
+}
+
 
 variable zap_debug_level {
   default = "info"

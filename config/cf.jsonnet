@@ -3,6 +3,6 @@ local F = import 'fetch.jsonnet';
 {
   // :: means "not visible in the output"
   EIGHT_SERVICES: {
-    fetch: F.fetch_container
+    fetch: F.fetch_cf
     }
 }
