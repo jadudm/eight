@@ -1,3 +1,7 @@
+# ARCHIVED
+
+This repository was archived on 2024-11-06. The exploration continued under https://github.com/GSA-TTS/jemison.
+
 # eight
 
 Experiment [six](https://github.com/jadudm/six) explored the creation of an end-to-end web crawler/indexer/search server in 2000 lines of Go.
