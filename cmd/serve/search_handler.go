@@ -15,6 +15,8 @@ import (
 	"github.com/jadudm/eight/internal/common"
 	"github.com/jadudm/eight/internal/env"
 	"github.com/jadudm/eight/internal/sqlite/schemas"
+	"github.com/kljensen/snowball"
+	"go.uber.org/zap"
 )
 
 // FIXME This becomes the API search interface
@@ -52,9 +54,25 @@ func SearchHandler(c *gin.Context) {
 		log.Fatal("SERVCE cannot open SQLite file", sqlite_file)
 	}
 
+	// Stem the terms and add wildcards.
+	improved_terms := make([]string, 0)
+	for _, t := range strings.Split(sri.Terms, " ") {
+		stemmed, err := snowball.Stem(t, "english", true)
+		if err != nil {
+			// Pass. Keep the value as-is
+			improved_terms = append(improved_terms, t)
+		} else {
+			improved_terms = append(improved_terms, stemmed+"*")
+		}
+	}
+	improved_terms_string := strings.Join(improved_terms, " ")
+
+	zap.L().Info("search string",
+		zap.String("original", sri.Terms),
+		zap.String("improved", improved_terms_string))
 	queries := schemas.New(db)
 	res, err := queries.SearchSiteIndexSnippets(context.Background(), schemas.SearchSiteIndexSnippetsParams{
-		Text:  sri.Terms,
+		Text:  improved_terms_string, //sri.Terms,
 		Limit: results_per_query,
 	})
 

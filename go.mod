@@ -12,6 +12,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/johbar/go-poppler v1.0.0
+	github.com/kljensen/snowball v0.10.0
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/minio/minio-go/v7 v7.0.80
 	github.com/nalgeon/redka v0.5.2
